@@ -11,8 +11,8 @@ export const MainLayout = ({ children }: MainLayoutProps) => {
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="border-b">
-        <div className="container flex h-16 items-center px-4">
+      <header className="border-b sticky top-0 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 z-50">
+        <div className="container flex h-16 items-center px-4 md:px-6">
           <div className="flex gap-6 md:gap-10">
             <Button
               variant="ghost"
@@ -22,7 +22,12 @@ export const MainLayout = ({ children }: MainLayoutProps) => {
               Hospital App
             </Button>
           </div>
-          <div className="ml-auto flex items-center space-x-4">
+          <nav className="hidden md:flex gap-6 ml-6">
+            <Button variant="ghost" onClick={() => navigate("/about")}>About</Button>
+            <Button variant="ghost" onClick={() => navigate("/contact")}>Contact</Button>
+            <Button variant="ghost" onClick={() => navigate("/help")}>Help</Button>
+          </nav>
+          <div className="ml-auto flex items-center gap-2">
             <Button
               variant="ghost"
               onClick={() => navigate("/login")}
@@ -37,7 +42,7 @@ export const MainLayout = ({ children }: MainLayoutProps) => {
           </div>
         </div>
       </header>
-      <main className="container py-6">{children}</main>
+      <main>{children}</main>
     </div>
   );
 };

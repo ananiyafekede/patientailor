@@ -19,7 +19,7 @@ const Index = () => {
       </Helmet>
 
       {/* Hero Section */}
-      <section className="relative h-[600px] flex items-center justify-center text-white">
+      <section className="relative min-h-[500px] md:min-h-[600px] lg:min-h-[700px] flex items-center justify-center text-white px-4 md:px-6 lg:px-8">
         <div 
           className="absolute inset-0 bg-cover bg-center z-0" 
           style={{ 
@@ -29,18 +29,18 @@ const Index = () => {
           <div className="absolute inset-0 bg-black/50" />
         </div>
         
-        <div className="relative z-10 text-center px-4">
-          <h1 className="text-4xl md:text-6xl font-bold mb-4">
+        <div className="relative z-10 text-center max-w-4xl mx-auto">
+          <h1 className="text-3xl md:text-5xl lg:text-6xl font-bold mb-4 leading-tight">
             Your Health, Our Priority
           </h1>
-          <p className="text-xl md:text-2xl mb-8 max-w-2xl mx-auto">
+          <p className="text-lg md:text-xl lg:text-2xl mb-8 max-w-2xl mx-auto">
             Simplified Online Appointments and Care at Your Fingertips
           </p>
-          <div className="flex gap-4 justify-center">
+          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
             <Button
               size="lg"
               onClick={() => navigate("/register")}
-              className="bg-primary hover:bg-primary/90"
+              className="w-full sm:w-auto bg-primary hover:bg-primary/90"
             >
               Get Started
             </Button>
@@ -48,7 +48,7 @@ const Index = () => {
               size="lg"
               variant="outline"
               onClick={() => navigate("/patient/schedule")}
-              className="bg-white/10 hover:bg-white/20 border-white"
+              className="w-full sm:w-auto bg-white/10 hover:bg-white/20 border-white"
             >
               Book Appointment Now
             </Button>
@@ -63,17 +63,17 @@ const Index = () => {
       <Announcements />
 
       {/* Footer */}
-      <footer className="bg-gray-900 text-white py-12">
-        <div className="container mx-auto px-4">
-          <div className="grid gap-8 md:grid-cols-4">
+      <footer className="bg-gray-900 text-white py-12 px-4 md:px-6 lg:px-8">
+        <div className="container mx-auto">
+          <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-4">
             <div>
               <h3 className="font-bold text-lg mb-4">Quick Links</h3>
               <ul className="space-y-2">
-                <li><Button variant="link" className="text-white p-0 h-auto">Home</Button></li>
-                <li><Button variant="link" className="text-white p-0 h-auto">About Us</Button></li>
-                <li><Button variant="link" className="text-white p-0 h-auto">Contact Us</Button></li>
-                <li><Button variant="link" className="text-white p-0 h-auto">Privacy Policy</Button></li>
-                <li><Button variant="link" className="text-white p-0 h-auto">Terms of Service</Button></li>
+                <li><Button variant="link" onClick={() => navigate("/")} className="text-white p-0 h-auto">Home</Button></li>
+                <li><Button variant="link" onClick={() => navigate("/about")} className="text-white p-0 h-auto">About Us</Button></li>
+                <li><Button variant="link" onClick={() => navigate("/contact")} className="text-white p-0 h-auto">Contact Us</Button></li>
+                <li><Button variant="link" onClick={() => navigate("/privacy-policy")} className="text-white p-0 h-auto">Privacy Policy</Button></li>
+                <li><Button variant="link" onClick={() => navigate("/terms-of-service")} className="text-white p-0 h-auto">Terms of Service</Button></li>
               </ul>
             </div>
             <div>
@@ -84,7 +84,7 @@ const Index = () => {
                 <li>Address: 123 Healthcare St, Medical City, MC 12345</li>
               </ul>
             </div>
-            <div>
+            <div className="lg:col-span-2">
               <h3 className="font-bold text-lg mb-4">Follow Us</h3>
               <div className="flex space-x-4">
                 <Button variant="ghost" size="icon" className="text-white hover:text-primary">
