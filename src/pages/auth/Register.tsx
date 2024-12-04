@@ -27,11 +27,20 @@ const Register = () => {
 
     try {
       const { data, error } = await supabase.auth.signUp({
-        email,
+        email: email.trim(),
         password,
       });
 
-      if (error) throw error;
+      if (error) {
+        if (error.message === "User already registered") {
+          toast.error("This email is already registered. Please try logging in instead.");
+          console.error("Registration error: User already exists");
+        } else {
+          toast.error(error.message || "An error occurred during registration");
+          console.error("Registration error:", error);
+        }
+        return;
+      }
 
       if (data.user) {
         toast.success("Registration successful! Please check your email for verification.");
@@ -39,6 +48,7 @@ const Register = () => {
       }
     } catch (error: any) {
       toast.error(error.message || "An error occurred during registration");
+      console.error("Registration error:", error);
     } finally {
       setLoading(false);
     }
