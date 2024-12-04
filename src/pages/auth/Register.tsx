@@ -1,16 +1,15 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Helmet } from 'react-helmet-async';
+import toast from 'react-hot-toast';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
 const Register = () => {
   const navigate = useNavigate();
-  const { toast } = useToast();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -21,11 +20,7 @@ const Register = () => {
     setLoading(true);
 
     if (password !== confirmPassword) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Passwords do not match",
-      });
+      toast.error("Passwords do not match");
       setLoading(false);
       return;
     }
@@ -39,18 +34,11 @@ const Register = () => {
       if (error) throw error;
 
       if (data.user) {
-        toast({
-          title: "Success",
-          description: "Registration successful! Please check your email for verification.",
-        });
+        toast.success("Registration successful! Please check your email for verification.");
         navigate("/login");
       }
     } catch (error: any) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: error.message || "An error occurred during registration",
-      });
+      toast.error(error.message || "An error occurred during registration");
     } finally {
       setLoading(false);
     }
