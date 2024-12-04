@@ -30,6 +30,7 @@ const Login = () => {
         } else {
           toast.error(error.message);
         }
+        console.error("Login error:", error);
         return;
       }
 
