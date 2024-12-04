@@ -20,18 +20,26 @@ const Login = () => {
 
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
+        email: email.trim(),
+        password: password,
       });
 
-      if (error) throw error;
+      if (error) {
+        if (error.message === "Invalid login credentials") {
+          toast.error("Invalid email or password. Please try again.");
+        } else {
+          toast.error(error.message);
+        }
+        return;
+      }
 
       if (data.user) {
         toast.success('Successfully logged in!');
         navigate("/patient/dashboard");
       }
     } catch (error: any) {
-      toast.error(error.message || "An error occurred during login");
+      toast.error("An unexpected error occurred. Please try again.");
+      console.error("Login error:", error);
     } finally {
       setLoading(false);
     }
