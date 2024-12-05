@@ -38,11 +38,25 @@ const AppointmentList = () => {
       
       console.log('Current user ID:', user.id);
       
-      // First get the patient record to get the integer user_id
+      // Get the profile to get the integer user_id from patients table
+      const { data: profileData, error: profileError } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .single();
+        
+      if (profileError) {
+        console.error('Error fetching profile:', profileError);
+        throw profileError;
+      }
+      
+      console.log('Profile data:', profileData);
+      
+      // Now get the patient record using the profile data
       const { data: patientData, error: patientError } = await supabase
         .from('patients')
         .select('user_id')
-        .eq('id', user.id)
+        .eq('user_id', profileData.id)
         .single();
         
       if (patientError) {
