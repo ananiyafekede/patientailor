@@ -53,7 +53,7 @@ const BookAppointment = () => {
       if (!session?.user) throw new Error('No user found');
 
       const appointmentData = {
-        patient_id: session.user.id,
+        patient_id: parseInt(session.user.id),
         doctor_id: parseInt(selectedDoctor),
         appointment_date: format(selectedDate!, 'yyyy-MM-dd'),
         appointment_time: selectedTime,
