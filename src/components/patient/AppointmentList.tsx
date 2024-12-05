@@ -66,7 +66,7 @@ const AppointmentList = () => {
       
       console.log('Patient data:', patientData);
       
-      // Now use the patient's user_id to get appointments
+      // Now use the patient's user_id to get appointments with doctor details
       const { data, error } = await supabase
         .from('appointments')
         .select(`
@@ -87,8 +87,10 @@ const AppointmentList = () => {
         throw error;
       }
       
-      console.log('Appointments:', data);
-      return data as Appointment[];
+      console.log('Appointments data:', data);
+      
+      // Ensure the data matches our Appointment type
+      return data as unknown as Appointment[];
     }
   });
 
