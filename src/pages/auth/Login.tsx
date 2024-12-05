@@ -24,10 +24,6 @@ const Login = () => {
       const { data, error } = await supabase.auth.signInWithPassword({
         email: email.trim(),
         password,
-        options: {
-          // Set session duration to 10 days if remember me is checked
-          ...(rememberMe && { session: { expiresIn: 60 * 60 * 24 * 10 } })
-        }
       });
 
       if (error) {
@@ -41,6 +37,13 @@ const Login = () => {
       }
 
       if (data.user) {
+        // If remember me is checked, update session
+        if (rememberMe) {
+          await supabase.auth.updateUser({
+            data: { session_duration: 60 * 60 * 24 * 10 } // 10 days in seconds
+          });
+        }
+        
         toast.success('Successfully logged in!');
         navigate("/patient/dashboard");
       }

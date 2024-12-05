@@ -20,15 +20,19 @@ const ProtectedRoute = ({ children, allowedRoles = [] }: ProtectedRouteProps) =>
         setUser(session?.user ?? null);
 
         if (session?.user) {
-          // Fetch user role from your profiles or users table
-          const { data: userData, error } = await supabase
-            .from('users')
+          // Fetch user role from profiles table
+          const { data: profileData, error } = await supabase
+            .from('profiles')
             .select('role')
             .eq('id', session.user.id)
             .single();
 
-          if (error) throw error;
-          setUserRole(userData?.role ?? null);
+          if (error) {
+            console.error('Error fetching user role:', error);
+            throw error;
+          }
+          
+          setUserRole(profileData?.role ?? null);
         }
       } catch (error) {
         console.error('Auth check error:', error);
@@ -42,12 +46,12 @@ const ProtectedRoute = ({ children, allowedRoles = [] }: ProtectedRouteProps) =>
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       setUser(session?.user ?? null);
       if (session?.user) {
-        const { data: userData } = await supabase
-          .from('users')
+        const { data: profileData } = await supabase
+          .from('profiles')
           .select('role')
           .eq('id', session.user.id)
           .single();
-        setUserRole(userData?.role ?? null);
+        setUserRole(profileData?.role ?? null);
       } else {
         setUserRole(null);
       }
