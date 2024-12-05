@@ -4,15 +4,17 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
+interface Doctor {
+  specialty: string;
+  qualification: string;
+}
+
 interface Appointment {
   id: number;
   appointment_date: string;
   appointment_time: string;
   status: string;
-  doctors: {
-    specialty: string;
-    qualification: string;
-  };
+  doctors: Doctor;
 }
 
 interface AppointmentListProps {

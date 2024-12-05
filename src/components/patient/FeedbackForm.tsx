@@ -31,10 +31,10 @@ const FeedbackForm = () => {
 
       const { error } = await supabase
         .from('feedback')
-        .insert({
+        .insert([{
           patient_id: session.user.id,
           feedback_text: values.feedback_text,
-        });
+        }]);
 
       if (error) throw error;
       

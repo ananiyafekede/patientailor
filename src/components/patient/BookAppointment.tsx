@@ -18,12 +18,7 @@ const BookAppointment = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('doctors')
-        .select(`
-          user_id,
-          specialty,
-          qualification,
-          experience_years
-        `);
+        .select('user_id, specialty, qualification, experience_years');
       
       if (error) throw error;
       return data;
@@ -52,13 +47,13 @@ const BookAppointment = () => {
 
       const { error } = await supabase
         .from('appointments')
-        .insert({
+        .insert([{
           patient_id: session.user.id,
           doctor_id: selectedDoctor,
           appointment_date: format(selectedDate!, 'yyyy-MM-dd'),
           appointment_time: selectedTime,
           status: 'pending'
-        });
+        }]);
 
       if (error) throw error;
       
@@ -85,7 +80,10 @@ const BookAppointment = () => {
             mode="single"
             selected={selectedDate}
             onSelect={setSelectedDate}
-            disabled={(date) => date < new Date() || date > new Date().setMonth(new Date().getMonth() + 2)}
+            disabled={(date) => 
+              date < new Date(new Date().setHours(0, 0, 0, 0)) || 
+              date > new Date(new Date().setMonth(new Date().getMonth() + 2))
+            }
             className="rounded-md border"
           />
         </CardContent>

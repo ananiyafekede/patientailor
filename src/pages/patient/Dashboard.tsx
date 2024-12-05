@@ -15,6 +15,19 @@ import ProfileSettings from "@/components/patient/ProfileSettings";
 import BillingHistory from "@/components/patient/BillingHistory";
 import FeedbackForm from "@/components/patient/FeedbackForm";
 
+interface Doctor {
+  specialty: string;
+  qualification: string;
+}
+
+interface Appointment {
+  id: number;
+  appointment_date: string;
+  appointment_time: string;
+  status: string;
+  doctors: Doctor;
+}
+
 const PatientDashboard = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("appointments");
@@ -45,9 +58,11 @@ const PatientDashboard = () => {
       const { data, error } = await supabase
         .from('appointments')
         .select(`
-          *,
+          id,
+          appointment_date,
+          appointment_time,
+          status,
           doctors:doctor_id (
-            user_id,
             specialty,
             qualification
           )
@@ -56,7 +71,7 @@ const PatientDashboard = () => {
         .order('appointment_date', { ascending: true });
         
       if (error) throw error;
-      return data;
+      return data as Appointment[];
     }
   });
 

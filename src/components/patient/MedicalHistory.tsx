@@ -3,6 +3,18 @@ import { FileText } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 
+interface Doctor {
+  specialty: string;
+  qualification: string;
+}
+
+interface Appointment {
+  id: number;
+  appointment_date: string;
+  doctors: Doctor;
+  medical_notes?: string;
+}
+
 const MedicalHistory = () => {
   const { data: appointments, isLoading } = useQuery({
     queryKey: ['medicalHistory'],
@@ -13,7 +25,9 @@ const MedicalHistory = () => {
       const { data, error } = await supabase
         .from('appointments')
         .select(`
-          *,
+          id,
+          appointment_date,
+          medical_notes,
           doctors:doctor_id (
             specialty,
             qualification
@@ -24,7 +38,7 @@ const MedicalHistory = () => {
         .order('appointment_date', { ascending: false });
         
       if (error) throw error;
-      return data;
+      return data as Appointment[];
     }
   });
 
