@@ -6,6 +6,23 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 
+interface Doctor {
+  specialty: string;
+  qualification: string;
+}
+
+interface Appointment {
+  appointment_date: string;
+  doctors: Doctor;
+}
+
+interface Bill {
+  id: number;
+  amount: number;
+  payment_status: string;
+  appointments?: Appointment;
+}
+
 const BillingHistory = () => {
   const { data: bills, isLoading } = useQuery({
     queryKey: ['billingHistory'],
@@ -27,7 +44,7 @@ const BillingHistory = () => {
         .order('created_at', { ascending: false });
         
       if (error) throw error;
-      return data;
+      return data as Bill[];
     }
   });
 

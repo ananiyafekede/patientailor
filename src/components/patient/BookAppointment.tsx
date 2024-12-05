@@ -8,6 +8,13 @@ import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import toast from "react-hot-toast";
 
+interface Doctor {
+  user_id: number;
+  specialty: string;
+  qualification: string;
+  experience_years: number;
+}
+
 const BookAppointment = () => {
   const [selectedDate, setSelectedDate] = useState<Date>();
   const [selectedDoctor, setSelectedDoctor] = useState("");
@@ -21,7 +28,7 @@ const BookAppointment = () => {
         .select('user_id, specialty, qualification, experience_years');
       
       if (error) throw error;
-      return data;
+      return data as Doctor[];
     }
   });
 
@@ -47,13 +54,13 @@ const BookAppointment = () => {
 
       const { error } = await supabase
         .from('appointments')
-        .insert([{
+        .insert({
           patient_id: session.user.id,
-          doctor_id: selectedDoctor,
+          doctor_id: parseInt(selectedDoctor),
           appointment_date: format(selectedDate!, 'yyyy-MM-dd'),
           appointment_time: selectedTime,
           status: 'pending'
-        }]);
+        });
 
       if (error) throw error;
       

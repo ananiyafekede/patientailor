@@ -71,7 +71,7 @@ const PatientDashboard = () => {
         .order('appointment_date', { ascending: true });
         
       if (error) throw error;
-      return data as Appointment[];
+      return data as unknown as Appointment[];
     }
   });
 
