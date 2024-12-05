@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
+import { Spinner } from "@/components/ui/spinner";
 import AppointmentList from "@/components/patient/AppointmentList";
 import BookAppointment from "@/components/patient/BookAppointment";
 import MedicalHistory from "@/components/patient/MedicalHistory";
@@ -76,7 +77,7 @@ const PatientDashboard = () => {
   });
 
   if (profileLoading || appointmentsLoading) {
-    return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
+    return <Spinner />;
   }
 
   return (
@@ -85,10 +86,15 @@ const PatientDashboard = () => {
         <title>Patient Dashboard - Hospital Management System</title>
       </Helmet>
 
-      <div className="container mx-auto p-6 space-y-6">
+      <div className="container mx-auto p-6 space-y-6 bg-gradient-to-br from-blue-50 to-indigo-50 min-h-screen">
         <div className="flex justify-between items-center">
-          <h1 className="text-3xl font-bold">Welcome, {userProfile?.first_name}</h1>
-          <Button onClick={() => setActiveTab("profile")}>
+          <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600">
+            Welcome, {userProfile?.first_name}
+          </h1>
+          <Button 
+            onClick={() => setActiveTab("profile")}
+            className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
+          >
             <User className="mr-2 h-4 w-4" />
             Profile Settings
           </Button>
@@ -96,54 +102,70 @@ const PatientDashboard = () => {
 
         {/* Quick Stats */}
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          <Card>
+          <Card className="bg-white/50 backdrop-blur border-none shadow-lg hover:shadow-xl transition-all duration-200">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Total Appointments</CardTitle>
-              <Calendar className="h-4 w-4 text-muted-foreground" />
+              <Calendar className="h-4 w-4 text-blue-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{appointments?.length || 0}</div>
+              <div className="text-2xl font-bold text-blue-600">{appointments?.length || 0}</div>
             </CardContent>
           </Card>
-          <Card>
+          <Card className="bg-white/50 backdrop-blur border-none shadow-lg hover:shadow-xl transition-all duration-200">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Upcoming</CardTitle>
-              <Clock className="h-4 w-4 text-muted-foreground" />
+              <Clock className="h-4 w-4 text-indigo-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">
+              <div className="text-2xl font-bold text-indigo-600">
                 {appointments?.filter(apt => new Date(apt.appointment_date) > new Date()).length || 0}
               </div>
             </CardContent>
           </Card>
-          <Card>
+          <Card className="bg-white/50 backdrop-blur border-none shadow-lg hover:shadow-xl transition-all duration-200">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Pending Bills</CardTitle>
-              <DollarSign className="h-4 w-4 text-muted-foreground" />
+              <DollarSign className="h-4 w-4 text-purple-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">0</div>
+              <div className="text-2xl font-bold text-purple-600">0</div>
             </CardContent>
           </Card>
-          <Card>
+          <Card className="bg-white/50 backdrop-blur border-none shadow-lg hover:shadow-xl transition-all duration-200">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Medical Records</CardTitle>
-              <FileText className="h-4 w-4 text-muted-foreground" />
+              <FileText className="h-4 w-4 text-violet-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">0</div>
+              <div className="text-2xl font-bold text-violet-600">0</div>
             </CardContent>
           </Card>
         </div>
 
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-          <TabsList>
-            <TabsTrigger value="appointments">Appointments</TabsTrigger>
-            <TabsTrigger value="book">Book Appointment</TabsTrigger>
-            <TabsTrigger value="history">Medical History</TabsTrigger>
-            <TabsTrigger value="profile">Profile</TabsTrigger>
-            <TabsTrigger value="billing">Billing</TabsTrigger>
-            <TabsTrigger value="feedback">Feedback</TabsTrigger>
+        <Tabs 
+          value={activeTab} 
+          onValueChange={setActiveTab} 
+          className="space-y-4"
+        >
+          <TabsList className="bg-white/50 backdrop-blur border-none shadow-md">
+            <TabsTrigger value="appointments" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">
+              Appointments
+            </TabsTrigger>
+            <TabsTrigger value="book" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">
+              Book Appointment
+            </TabsTrigger>
+            <TabsTrigger value="history" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">
+              Medical History
+            </TabsTrigger>
+            <TabsTrigger value="profile" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">
+              Profile
+            </TabsTrigger>
+            <TabsTrigger value="billing" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">
+              Billing
+            </TabsTrigger>
+            <TabsTrigger value="feedback" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">
+              Feedback
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="appointments" className="space-y-4">
