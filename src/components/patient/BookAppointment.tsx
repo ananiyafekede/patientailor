@@ -52,15 +52,17 @@ const BookAppointment = () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session?.user) throw new Error('No user found');
 
+      const appointmentData = {
+        patient_id: session.user.id,
+        doctor_id: parseInt(selectedDoctor),
+        appointment_date: format(selectedDate!, 'yyyy-MM-dd'),
+        appointment_time: selectedTime,
+        status: 'pending'
+      };
+
       const { error } = await supabase
         .from('appointments')
-        .insert({
-          patient_id: session.user.id,
-          doctor_id: parseInt(selectedDoctor),
-          appointment_date: format(selectedDate!, 'yyyy-MM-dd'),
-          appointment_time: selectedTime,
-          status: 'pending'
-        });
+        .insert(appointmentData);
 
       if (error) throw error;
       

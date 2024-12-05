@@ -20,6 +20,10 @@ interface Bill {
   id: number;
   amount: number;
   payment_status: string;
+  payment_method?: string;
+  payment_date?: string;
+  created_at?: string;
+  appointment_id?: number;
   appointments?: Appointment;
 }
 
@@ -37,14 +41,15 @@ const BillingHistory = () => {
           appointments (
             appointment_date,
             doctors:doctor_id (
-              specialty
+              specialty,
+              qualification
             )
           )
         `)
         .order('created_at', { ascending: false });
         
       if (error) throw error;
-      return data as Bill[];
+      return data as unknown as Bill[];
     }
   });
 
