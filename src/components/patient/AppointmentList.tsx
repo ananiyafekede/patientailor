@@ -42,6 +42,7 @@ const AppointmentList = () => {
       const { data: patientData, error: patientError } = await supabase
         .from('patients')
         .select('user_id')
+        .eq('id', user.id)
         .single();
         
       if (patientError) {

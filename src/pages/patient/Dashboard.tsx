@@ -168,7 +168,7 @@ const PatientDashboard = () => {
           </TabsList>
 
           <TabsContent value="appointments" className="space-y-4">
-            <AppointmentList appointments={appointments || []} />
+            <AppointmentList />
           </TabsContent>
 
           <TabsContent value="book">
