@@ -26,23 +26,28 @@ const FeedbackForm = () => {
   const onSubmit = async (values: z.infer<typeof feedbackSchema>) => {
     setIsLoading(true);
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session?.user) throw new Error('No user found');
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('No user found');
 
+      console.log('Submitting feedback for user:', user.id);
+      
       const { error } = await supabase
         .from('feedback')
         .insert({
-          patient_id: parseInt(session.user.id),
+          patient_id: parseInt(user.id),
           feedback_text: values.feedback_text,
         });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Feedback submission error:', error);
+        throw error;
+      }
       
       toast.success('Feedback submitted successfully');
       form.reset();
     } catch (error) {
-      toast.error('Failed to submit feedback');
       console.error('Feedback submission error:', error);
+      toast.error('Failed to submit feedback');
     } finally {
       setIsLoading(false);
     }
