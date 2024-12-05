@@ -48,6 +48,8 @@ export type Database = {
           created_at: string | null
           doctor_id: number | null
           id: number
+          is_completed: boolean | null
+          medical_notes: string | null
           notes: string | null
           patient_id: number | null
           schedule_id: number | null
@@ -60,6 +62,8 @@ export type Database = {
           created_at?: string | null
           doctor_id?: number | null
           id?: number
+          is_completed?: boolean | null
+          medical_notes?: string | null
           notes?: string | null
           patient_id?: number | null
           schedule_id?: number | null
@@ -72,6 +76,8 @@ export type Database = {
           created_at?: string | null
           doctor_id?: number | null
           id?: number
+          is_completed?: boolean | null
+          medical_notes?: string | null
           notes?: string | null
           patient_id?: number | null
           schedule_id?: number | null
@@ -129,6 +135,7 @@ export type Database = {
           appointment_id: number | null
           created_at: string | null
           id: number
+          payment_date: string | null
           payment_method: string | null
           payment_status: string | null
         }
@@ -137,6 +144,7 @@ export type Database = {
           appointment_id?: number | null
           created_at?: string | null
           id?: number
+          payment_date?: string | null
           payment_method?: string | null
           payment_status?: string | null
         }
@@ -145,6 +153,7 @@ export type Database = {
           appointment_id?: number | null
           created_at?: string | null
           id?: number
+          payment_date?: string | null
           payment_method?: string | null
           payment_status?: string | null
         }
@@ -193,18 +202,21 @@ export type Database = {
           feedback_text: string
           id: number
           patient_id: number | null
+          rating: number | null
         }
         Insert: {
           created_at?: string | null
           feedback_text: string
           id?: number
           patient_id?: number | null
+          rating?: number | null
         }
         Update: {
           created_at?: string | null
           feedback_text?: string
           id?: number
           patient_id?: number | null
+          rating?: number | null
         }
         Relationships: [
           {
@@ -286,6 +298,7 @@ export type Database = {
           first_name: string | null
           id: string
           last_name: string | null
+          role: string | null
           updated_at: string
         }
         Insert: {
@@ -293,6 +306,7 @@ export type Database = {
           first_name?: string | null
           id: string
           last_name?: string | null
+          role?: string | null
           updated_at?: string
         }
         Update: {
@@ -300,6 +314,7 @@ export type Database = {
           first_name?: string | null
           id?: string
           last_name?: string | null
+          role?: string | null
           updated_at?: string
         }
         Relationships: []

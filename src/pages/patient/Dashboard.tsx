@@ -1,36 +1,162 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { Helmet } from "react-helmet-async";
+import { useQuery } from "@tanstack/react-query";
+import toast from "react-hot-toast";
+import { Calendar, Clock, DollarSign, FileText, MessageSquare, User } from "lucide-react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { supabase } from "@/integrations/supabase/client";
+import AppointmentList from "@/components/patient/AppointmentList";
+import BookAppointment from "@/components/patient/BookAppointment";
+import MedicalHistory from "@/components/patient/MedicalHistory";
+import ProfileSettings from "@/components/patient/ProfileSettings";
+import BillingHistory from "@/components/patient/BillingHistory";
+import FeedbackForm from "@/components/patient/FeedbackForm";
 
 const PatientDashboard = () => {
+  const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState("appointments");
+
+  const { data: userProfile, isLoading: profileLoading } = useQuery({
+    queryKey: ['userProfile'],
+    queryFn: async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user) throw new Error('No user found');
+      
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', session.user.id)
+        .single();
+        
+      if (error) throw error;
+      return data;
+    }
+  });
+
+  const { data: appointments, isLoading: appointmentsLoading } = useQuery({
+    queryKey: ['appointments'],
+    queryFn: async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user) throw new Error('No user found');
+      
+      const { data, error } = await supabase
+        .from('appointments')
+        .select(`
+          *,
+          doctors:doctor_id (
+            user_id,
+            specialty,
+            qualification
+          )
+        `)
+        .eq('patient_id', session.user.id)
+        .order('appointment_date', { ascending: true });
+        
+      if (error) throw error;
+      return data;
+    }
+  });
+
+  if (profileLoading || appointmentsLoading) {
+    return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
+  }
+
   return (
-    <div className="space-y-4">
-      <h1 className="text-3xl font-bold">Patient Dashboard</h1>
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        <Card>
-          <CardHeader>
-            <CardTitle>Upcoming Appointments</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-muted-foreground">No upcoming appointments</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle>Medical Records</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-muted-foreground">No medical records available</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle>Recent Activity</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-muted-foreground">No recent activity</p>
-          </CardContent>
-        </Card>
+    <>
+      <Helmet>
+        <title>Patient Dashboard - Hospital Management System</title>
+      </Helmet>
+
+      <div className="container mx-auto p-6 space-y-6">
+        <div className="flex justify-between items-center">
+          <h1 className="text-3xl font-bold">Welcome, {userProfile?.first_name}</h1>
+          <Button onClick={() => setActiveTab("profile")}>
+            <User className="mr-2 h-4 w-4" />
+            Profile Settings
+          </Button>
+        </div>
+
+        {/* Quick Stats */}
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Total Appointments</CardTitle>
+              <Calendar className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{appointments?.length || 0}</div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Upcoming</CardTitle>
+              <Clock className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                {appointments?.filter(apt => new Date(apt.appointment_date) > new Date()).length || 0}
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Pending Bills</CardTitle>
+              <DollarSign className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">0</div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Medical Records</CardTitle>
+              <FileText className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">0</div>
+            </CardContent>
+          </Card>
+        </div>
+
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
+          <TabsList>
+            <TabsTrigger value="appointments">Appointments</TabsTrigger>
+            <TabsTrigger value="book">Book Appointment</TabsTrigger>
+            <TabsTrigger value="history">Medical History</TabsTrigger>
+            <TabsTrigger value="profile">Profile</TabsTrigger>
+            <TabsTrigger value="billing">Billing</TabsTrigger>
+            <TabsTrigger value="feedback">Feedback</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="appointments" className="space-y-4">
+            <AppointmentList appointments={appointments || []} />
+          </TabsContent>
+
+          <TabsContent value="book">
+            <BookAppointment />
+          </TabsContent>
+
+          <TabsContent value="history">
+            <MedicalHistory />
+          </TabsContent>
+
+          <TabsContent value="profile">
+            <ProfileSettings profile={userProfile} />
+          </TabsContent>
+
+          <TabsContent value="billing">
+            <BillingHistory />
+          </TabsContent>
+
+          <TabsContent value="feedback">
+            <FeedbackForm />
+          </TabsContent>
+        </Tabs>
       </div>
-    </div>
+    </>
   );
 };
 
