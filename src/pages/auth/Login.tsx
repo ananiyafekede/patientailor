@@ -25,9 +25,8 @@ const Login = () => {
         email: email.trim(),
         password,
         options: {
-          persistSession: rememberMe,
           // Set session duration to 10 days if remember me is checked
-          ...(rememberMe && { sessionTime: 60 * 60 * 24 * 10 })
+          ...(rememberMe && { session: { expiresIn: 60 * 60 * 24 * 10 } })
         }
       });
 
