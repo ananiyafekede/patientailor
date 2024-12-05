@@ -19,11 +19,25 @@ interface MainLayoutProps {
 export const MainLayout = ({ children }: MainLayoutProps) => {
   const navigate = useNavigate();
   const [user, setUser] = useState<User | null>(null);
+  const [userRole, setUserRole] = useState<string | null>(null);
 
   useEffect(() => {
     // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
+      if (session?.user) {
+        // Fetch user role from profiles table
+        supabase
+          .from('profiles')
+          .select('role')
+          .eq('id', session.user.id)
+          .single()
+          .then(({ data, error }) => {
+            if (!error && data) {
+              setUserRole(data.role);
+            }
+          });
+      }
     });
 
     // Listen for auth changes
@@ -31,6 +45,21 @@ export const MainLayout = ({ children }: MainLayoutProps) => {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
+      if (session?.user) {
+        // Fetch user role when auth state changes
+        supabase
+          .from('profiles')
+          .select('role')
+          .eq('id', session.user.id)
+          .single()
+          .then(({ data, error }) => {
+            if (!error && data) {
+              setUserRole(data.role);
+            }
+          });
+      } else {
+        setUserRole(null);
+      }
     });
 
     return () => subscription.unsubscribe();
@@ -58,6 +87,14 @@ export const MainLayout = ({ children }: MainLayoutProps) => {
             <Button variant="ghost" onClick={() => navigate("/about")}>About</Button>
             <Button variant="ghost" onClick={() => navigate("/contact")}>Contact</Button>
             <Button variant="ghost" onClick={() => navigate("/help")}>Help</Button>
+            {user && userRole === 'patient' && (
+              <Button 
+                variant="ghost" 
+                onClick={() => navigate("/patient/dashboard")}
+              >
+                Patient Dashboard
+              </Button>
+            )}
           </nav>
           <div className="ml-auto flex items-center gap-2">
             {user ? (
@@ -70,6 +107,11 @@ export const MainLayout = ({ children }: MainLayoutProps) => {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
+                  {userRole === 'patient' && (
+                    <DropdownMenuItem onClick={() => navigate("/patient/dashboard")}>
+                      Patient Dashboard
+                    </DropdownMenuItem>
+                  )}
                   <DropdownMenuItem onClick={() => navigate("/profile")}>
                     Profile Settings
                   </DropdownMenuItem>
