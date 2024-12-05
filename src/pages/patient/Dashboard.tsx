@@ -86,38 +86,37 @@ const PatientDashboard = () => {
         <title>Patient Dashboard - Hospital Management System</title>
       </Helmet>
 
-      <div className="container mx-auto p-6 space-y-6 bg-gradient-to-br from-blue-50 to-indigo-50 min-h-screen">
+      <div className="container mx-auto p-6 space-y-6 bg-gradient-to-br from-blue-50 to-[#2563EB]/10 min-h-screen">
         <div className="flex justify-between items-center">
-          <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600">
+          <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#2563EB] to-blue-700">
             Welcome, {userProfile?.first_name}
           </h1>
           <Button 
             onClick={() => setActiveTab("profile")}
-            className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
+            className="bg-[#2563EB] hover:bg-blue-700 text-white"
           >
             <User className="mr-2 h-4 w-4" />
             Profile Settings
           </Button>
         </div>
 
-        {/* Quick Stats */}
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           <Card className="bg-white/50 backdrop-blur border-none shadow-lg hover:shadow-xl transition-all duration-200">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Total Appointments</CardTitle>
-              <Calendar className="h-4 w-4 text-blue-600" />
+              <Calendar className="h-4 w-4 text-[#2563EB]" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-blue-600">{appointments?.length || 0}</div>
+              <div className="text-2xl font-bold text-[#2563EB]">{appointments?.length || 0}</div>
             </CardContent>
           </Card>
           <Card className="bg-white/50 backdrop-blur border-none shadow-lg hover:shadow-xl transition-all duration-200">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Upcoming</CardTitle>
-              <Clock className="h-4 w-4 text-indigo-600" />
+              <Clock className="h-4 w-4 text-[#2563EB]" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-indigo-600">
+              <div className="text-2xl font-bold text-[#2563EB]">
                 {appointments?.filter(apt => new Date(apt.appointment_date) > new Date()).length || 0}
               </div>
             </CardContent>
@@ -125,19 +124,19 @@ const PatientDashboard = () => {
           <Card className="bg-white/50 backdrop-blur border-none shadow-lg hover:shadow-xl transition-all duration-200">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Pending Bills</CardTitle>
-              <DollarSign className="h-4 w-4 text-purple-600" />
+              <DollarSign className="h-4 w-4 text-[#2563EB]" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-purple-600">0</div>
+              <div className="text-2xl font-bold text-[#2563EB]">0</div>
             </CardContent>
           </Card>
           <Card className="bg-white/50 backdrop-blur border-none shadow-lg hover:shadow-xl transition-all duration-200">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Medical Records</CardTitle>
-              <FileText className="h-4 w-4 text-violet-600" />
+              <FileText className="h-4 w-4 text-[#2563EB]" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-violet-600">0</div>
+              <div className="text-2xl font-bold text-[#2563EB]">0</div>
             </CardContent>
           </Card>
         </div>
@@ -148,22 +147,22 @@ const PatientDashboard = () => {
           className="space-y-4"
         >
           <TabsList className="bg-white/50 backdrop-blur border-none shadow-md">
-            <TabsTrigger value="appointments" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">
+            <TabsTrigger value="appointments" className="data-[state=active]:bg-[#2563EB] data-[state=active]:text-white">
               Appointments
             </TabsTrigger>
-            <TabsTrigger value="book" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">
+            <TabsTrigger value="book" className="data-[state=active]:bg-[#2563EB] data-[state=active]:text-white">
               Book Appointment
             </TabsTrigger>
-            <TabsTrigger value="history" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">
+            <TabsTrigger value="history" className="data-[state=active]:bg-[#2563EB] data-[state=active]:text-white">
               Medical History
             </TabsTrigger>
-            <TabsTrigger value="profile" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">
+            <TabsTrigger value="profile" className="data-[state=active]:bg-[#2563EB] data-[state=active]:text-white">
               Profile
             </TabsTrigger>
-            <TabsTrigger value="billing" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">
+            <TabsTrigger value="billing" className="data-[state=active]:bg-[#2563EB] data-[state=active]:text-white">
               Billing
             </TabsTrigger>
-            <TabsTrigger value="feedback" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">
+            <TabsTrigger value="feedback" className="data-[state=active]:bg-[#2563EB] data-[state=active]:text-white">
               Feedback
             </TabsTrigger>
           </TabsList>
