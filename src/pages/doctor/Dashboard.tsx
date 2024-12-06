@@ -7,7 +7,9 @@ import AppointmentList from "@/components/doctor/AppointmentList";
 import { DashboardHeader } from "@/components/doctor/DashboardHeader";
 import { MetricsCards } from "@/components/doctor/MetricsCards";
 import { AnalyticsSection } from "@/components/doctor/AnalyticsSection";
+import toast from "react-hot-toast";
 
+// Sample revenue data (we'll replace this with real data later)
 const revenueData = [
   { name: 'Mon', income: 3200, expense: 1700 },
   { name: 'Tue', income: 4500, expense: 2100 },
@@ -23,42 +25,74 @@ const DoctorDashboard = () => {
   const [totalPatients, setTotalPatients] = useState(0);
   const [completedToday, setCompletedToday] = useState(0);
 
-  const { data: doctorProfile, isLoading: profileLoading } = useQuery({
+  // Fetch doctor profile data
+  const { data: doctorProfile, isLoading: profileLoading, error: profileError } = useQuery({
     queryKey: ['doctorProfile'],
     queryFn: async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session?.user) throw new Error('No user found');
+      console.log('Fetching doctor profile...');
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('No user found');
+      
+      console.log('Current user:', user);
       
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
-        .eq('id', session.user.id)
+        .eq('id', user.id)
         .single();
         
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching profile:', error);
+        throw error;
+      }
+      
+      console.log('Profile data:', data);
       return data;
     }
   });
 
-  const { data: doctorDetails, isLoading: detailsLoading } = useQuery({
+  // Fetch doctor details
+  const { data: doctorDetails, isLoading: detailsLoading, error: detailsError } = useQuery({
     queryKey: ['doctorDetails'],
     queryFn: async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session?.user) throw new Error('No user found');
+      console.log('Fetching doctor details...');
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('No user found');
       
       const { data, error } = await supabase
         .from('doctors')
         .select('*')
-        .eq('user_id', session.user.id)
+        .eq('user_id', user.id)
         .single();
         
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching doctor details:', error);
+        throw error;
+      }
+      
+      console.log('Doctor details:', data);
       return data;
     }
   });
 
+  // Handle errors
+  useEffect(() => {
+    if (profileError) {
+      toast.error('Error loading profile data');
+      console.error('Profile error:', profileError);
+    }
+    if (detailsError) {
+      toast.error('Error loading doctor details');
+      console.error('Details error:', detailsError);
+    }
+  }, [profileError, detailsError]);
+
   if (profileLoading || detailsLoading) {
-    return <Spinner />;
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <Spinner />
+      </div>
+    );
   }
 
   return (
