@@ -6,6 +6,9 @@ import { MainLayout } from "./components/layout/MainLayout";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
 import { AuthProvider } from "./contexts/AuthContext";
 import Index from "./pages/Index";
+import About from "./pages/About";
+import Contact from "./pages/Contact";
+import Help from "./pages/Help";
 import Login from "./pages/auth/Login";
 import Register from "./pages/auth/Register";
 import PatientDashboard from "./pages/patient/Dashboard";
@@ -41,6 +44,9 @@ const App = () => (
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<MainLayout><Index /></MainLayout>} />
+            <Route path="/about" element={<MainLayout><About /></MainLayout>} />
+            <Route path="/contact" element={<MainLayout><Contact /></MainLayout>} />
+            <Route path="/help" element={<MainLayout><Help /></MainLayout>} />
             <Route path="/login" element={<MainLayout><Login /></MainLayout>} />
             <Route path="/register" element={<MainLayout><Register /></MainLayout>} />
             <Route path="/patient/dashboard" element={
