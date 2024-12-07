@@ -75,6 +75,38 @@ const DoctorDashboard = () => {
     }
   });
 
+  // Fetch metrics data
+  useEffect(() => {
+    const fetchMetrics = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      // Get today's appointments count
+      const { data: todayAppts, error: todayError } = await supabase
+        .from('appointments')
+        .select('*')
+        .eq('doctor_id', user.id)
+        .eq('appointment_date', new Date().toISOString().split('T')[0]);
+
+      if (!todayError && todayAppts) {
+        setTodayAppointments(todayAppts.length);
+        setCompletedToday(todayAppts.filter(apt => apt.is_completed).length);
+      }
+
+      // Get total unique patients
+      const { count: patientsCount, error: patientsError } = await supabase
+        .from('appointments')
+        .select('patient_id', { count: 'exact', head: true })
+        .eq('doctor_id', user.id);
+
+      if (!patientsError) {
+        setTotalPatients(patientsCount || 0);
+      }
+    };
+
+    fetchMetrics();
+  }, []);
+
   // Handle errors
   useEffect(() => {
     if (profileError) {
