@@ -6,13 +6,13 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
   PieChart, Pie, Cell, LineChart, Line, AreaChart, Area
 } from 'recharts';
+import { Users, UserPlus, Calendar, DollarSign, Activity, ChartBar, ChartPie, ChartLine } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Spinner } from "@/components/ui/spinner";
 import toast from "react-hot-toast";
 
 const AdminDashboard = () => {
-  // Sample data (we'll replace with real data from Supabase later)
   const patientsByMonth = [
     { month: 'Jan', count: 65 },
     { month: 'Feb', count: 85 },
@@ -48,13 +48,11 @@ const AdminDashboard = () => {
 
   const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8'];
 
-  // Fetch statistics from Supabase
   const { data: stats, isLoading, error } = useQuery({
     queryKey: ['adminStats'],
     queryFn: async () => {
       console.log('Fetching admin statistics...');
       
-      // Fetch total doctors
       const { count: doctorsCount, error: doctorsError } = await supabase
         .from('doctors')
         .select('*', { count: 'exact' });
@@ -64,7 +62,6 @@ const AdminDashboard = () => {
         throw doctorsError;
       }
 
-      // Fetch total patients
       const { count: patientsCount, error: patientsError } = await supabase
         .from('patients')
         .select('*', { count: 'exact' });
@@ -74,7 +71,6 @@ const AdminDashboard = () => {
         throw patientsError;
       }
 
-      // Fetch total appointments
       const { count: appointmentsCount, error: appointmentsError } = await supabase
         .from('appointments')
         .select('*', { count: 'exact' });
@@ -129,7 +125,10 @@ const AdminDashboard = () => {
             >
               <Card className="bg-gradient-to-br from-blue-500 to-blue-600 text-white">
                 <CardHeader>
-                  <CardTitle>Total Doctors</CardTitle>
+                  <CardTitle className="flex items-center gap-2">
+                    <Users className="h-6 w-6" />
+                    Total Doctors
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <p className="text-4xl font-bold">{stats?.totalDoctors}</p>
@@ -143,7 +142,10 @@ const AdminDashboard = () => {
             >
               <Card className="bg-gradient-to-br from-green-500 to-green-600 text-white">
                 <CardHeader>
-                  <CardTitle>Total Patients</CardTitle>
+                  <CardTitle className="flex items-center gap-2">
+                    <UserPlus className="h-6 w-6" />
+                    Total Patients
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <p className="text-4xl font-bold">{stats?.totalPatients}</p>
@@ -157,7 +159,10 @@ const AdminDashboard = () => {
             >
               <Card className="bg-gradient-to-br from-purple-500 to-purple-600 text-white">
                 <CardHeader>
-                  <CardTitle>Total Appointments</CardTitle>
+                  <CardTitle className="flex items-center gap-2">
+                    <Calendar className="h-6 w-6" />
+                    Total Appointments
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <p className="text-4xl font-bold">{stats?.totalAppointments}</p>
@@ -171,7 +176,10 @@ const AdminDashboard = () => {
             {/* Patient Growth Chart */}
             <Card>
               <CardHeader>
-                <CardTitle>Patient Growth</CardTitle>
+                <CardTitle className="flex items-center gap-2">
+                  <ChartLine className="h-5 w-5" />
+                  Patient Growth
+                </CardTitle>
               </CardHeader>
               <CardContent className="h-[400px]">
                 <ResponsiveContainer width="100%" height="100%">
@@ -201,7 +209,10 @@ const AdminDashboard = () => {
             {/* Doctor Specialty Distribution */}
             <Card>
               <CardHeader>
-                <CardTitle>Doctor Specialties</CardTitle>
+                <CardTitle className="flex items-center gap-2">
+                  <ChartPie className="h-5 w-5" />
+                  Doctor Specialties
+                </CardTitle>
               </CardHeader>
               <CardContent className="h-[400px]">
                 <ResponsiveContainer width="100%" height="100%">
@@ -231,7 +242,10 @@ const AdminDashboard = () => {
             {/* Revenue Chart */}
             <Card>
               <CardHeader>
-                <CardTitle>Revenue vs Expenses</CardTitle>
+                <CardTitle className="flex items-center gap-2">
+                  <DollarSign className="h-5 w-5" />
+                  Revenue vs Expenses
+                </CardTitle>
               </CardHeader>
               <CardContent className="h-[400px]">
                 <ResponsiveContainer width="100%" height="100%">
@@ -260,7 +274,10 @@ const AdminDashboard = () => {
             {/* Appointment Status Distribution */}
             <Card>
               <CardHeader>
-                <CardTitle>Appointment Status</CardTitle>
+                <CardTitle className="flex items-center gap-2">
+                  <Activity className="h-5 w-5" />
+                  Appointment Status
+                </CardTitle>
               </CardHeader>
               <CardContent className="h-[400px]">
                 <ResponsiveContainer width="100%" height="100%">
