@@ -4,6 +4,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { HelmetProvider } from 'react-helmet-async';
 import { MainLayout } from "./components/layout/MainLayout";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
+import { AuthProvider } from "./contexts/AuthContext";
 import Index from "./pages/Index";
 import Login from "./pages/auth/Login";
 import Register from "./pages/auth/Register";
@@ -16,48 +17,50 @@ const queryClient = new QueryClient();
 const App = () => (
   <HelmetProvider>
     <QueryClientProvider client={queryClient}>
-      <Toaster
-        position="top-right"
-        toastOptions={{
-          duration: 4000,
-          style: {
-            background: '#333',
-            color: '#fff',
-          },
-          success: {
+      <AuthProvider>
+        <Toaster
+          position="top-right"
+          toastOptions={{
+            duration: 4000,
             style: {
-              background: 'green',
+              background: '#333',
+              color: '#fff',
             },
-          },
-          error: {
-            style: {
-              background: 'red',
+            success: {
+              style: {
+                background: 'green',
+              },
             },
-          },
-        }}
-      />
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<MainLayout><Index /></MainLayout>} />
-          <Route path="/login" element={<MainLayout><Login /></MainLayout>} />
-          <Route path="/register" element={<MainLayout><Register /></MainLayout>} />
-          <Route path="/patient/dashboard" element={
-            <ProtectedRoute allowedRoles={["patient"]}>
-              <MainLayout><PatientDashboard /></MainLayout>
-            </ProtectedRoute>
-          } />
-          <Route path="/doctor/dashboard" element={
-            <ProtectedRoute allowedRoles={["doctor"]}>
-              <MainLayout><DoctorDashboard /></MainLayout>
-            </ProtectedRoute>
-          } />
-          <Route path="/admin/dashboard" element={
-            <ProtectedRoute allowedRoles={["admin"]}>
-              <MainLayout><AdminDashboard /></MainLayout>
-            </ProtectedRoute>
-          } />
-        </Routes>
-      </BrowserRouter>
+            error: {
+              style: {
+                background: 'red',
+              },
+            },
+          }}
+        />
+        <BrowserRouter>
+          <Routes>
+            <Route path="/" element={<MainLayout><Index /></MainLayout>} />
+            <Route path="/login" element={<MainLayout><Login /></MainLayout>} />
+            <Route path="/register" element={<MainLayout><Register /></MainLayout>} />
+            <Route path="/patient/dashboard" element={
+              <ProtectedRoute allowedRoles={["patient"]}>
+                <MainLayout><PatientDashboard /></MainLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/doctor/dashboard" element={
+              <ProtectedRoute allowedRoles={["doctor"]}>
+                <MainLayout><DoctorDashboard /></MainLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/dashboard" element={
+              <ProtectedRoute allowedRoles={["admin"]}>
+                <MainLayout><AdminDashboard /></MainLayout>
+              </ProtectedRoute>
+            } />
+          </Routes>
+        </BrowserRouter>
+      </AuthProvider>
     </QueryClientProvider>
   </HelmetProvider>
 );
