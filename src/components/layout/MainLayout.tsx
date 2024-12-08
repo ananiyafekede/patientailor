@@ -29,9 +29,9 @@ export const MainLayout = ({ children }: MainLayoutProps) => {
       try {
         const { data: { session } } = await supabase.auth.getSession();
         console.log('Session:', session);
-        setUser(session?.user ?? null);
         
         if (session?.user) {
+          setUser(session.user);
           const { data: profile } = await supabase
             .from('profiles')
             .select('role')
@@ -40,12 +40,34 @@ export const MainLayout = ({ children }: MainLayoutProps) => {
           
           console.log('Profile:', profile);
           setUserRole(profile?.role);
+
+          // Redirect based on role if on login page
+          if (location.pathname === '/login') {
+            switch (profile?.role) {
+              case 'admin':
+                navigate('/admin/dashboard');
+                break;
+              case 'doctor':
+                navigate('/doctor/dashboard');
+                break;
+              case 'patient':
+                navigate('/patient/dashboard');
+                break;
+              default:
+                navigate('/');
+            }
+          }
+        } else {
+          // If no session and on protected route, redirect to login
+          const isProtectedRoute = !['/login', '/register', '/', '/about', '/contact', '/help'].includes(location.pathname);
+          if (isProtectedRoute) {
+            navigate('/login');
+          }
         }
       } catch (error) {
         console.error('Auth error:', error);
         toast.error('Authentication error');
       } finally {
-        // Set loading to false regardless of the outcome
         setLoading(false);
       }
     };
@@ -54,9 +76,9 @@ export const MainLayout = ({ children }: MainLayoutProps) => {
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
       console.log('Auth state changed:', _event, session?.user?.email);
-      setUser(session?.user ?? null);
       
       if (session?.user) {
+        setUser(session.user);
         const { data: profile } = await supabase
           .from('profiles')
           .select('role')
@@ -65,6 +87,7 @@ export const MainLayout = ({ children }: MainLayoutProps) => {
         
         setUserRole(profile?.role);
       } else {
+        setUser(null);
         setUserRole(null);
         if (location.pathname !== '/login' && location.pathname !== '/register') {
           navigate('/login');
@@ -87,14 +110,20 @@ export const MainLayout = ({ children }: MainLayoutProps) => {
     }
   };
 
-  // Only show loading spinner on protected routes
+  // Only show loading spinner on protected routes and when actually loading auth state
   const isProtectedRoute = !['/login', '/register', '/', '/about', '/contact', '/help'].includes(location.pathname);
-  if (loading && isProtectedRoute) {
+  if (loading && isProtectedRoute && !user) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
       </div>
     );
+  }
+
+  // If we're on a protected route and have no user after loading, redirect to login
+  if (!loading && !user && isProtectedRoute) {
+    navigate('/login');
+    return null;
   }
 
   return (
