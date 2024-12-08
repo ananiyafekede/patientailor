@@ -25,52 +25,35 @@ export const MainLayout = ({ children }: MainLayoutProps) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Get initial session
     const initializeAuth = async () => {
       try {
         const { data: { session } } = await supabase.auth.getSession();
+        console.log('Session:', session);
         setUser(session?.user ?? null);
         
         if (session?.user) {
-          const { data: profile, error } = await supabase
+          const { data: profile } = await supabase
             .from('profiles')
             .select('role')
             .eq('id', session.user.id)
             .single();
           
-          if (error) throw error;
-          
+          console.log('Profile:', profile);
           setUserRole(profile?.role);
-          
-          // Redirect based on role if on login page
-          if (location.pathname === '/login') {
-            switch (profile?.role) {
-              case 'admin':
-                navigate('/admin/dashboard');
-                break;
-              case 'doctor':
-                navigate('/doctor/dashboard');
-                break;
-              case 'patient':
-                navigate('/patient/dashboard');
-                break;
-              default:
-                navigate('/');
-            }
-          }
         }
-        setLoading(false);
       } catch (error) {
         console.error('Auth error:', error);
         toast.error('Authentication error');
+      } finally {
+        // Set loading to false regardless of the outcome
         setLoading(false);
       }
     };
 
     initializeAuth();
 
-    // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      console.log('Auth state changed:', _event, session?.user?.email);
       setUser(session?.user ?? null);
       
       if (session?.user) {
@@ -87,6 +70,7 @@ export const MainLayout = ({ children }: MainLayoutProps) => {
           navigate('/login');
         }
       }
+      setLoading(false);
     });
 
     return () => subscription.unsubscribe();
@@ -103,8 +87,14 @@ export const MainLayout = ({ children }: MainLayoutProps) => {
     }
   };
 
-  if (loading) {
-    return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
+  // Only show loading spinner on protected routes
+  const isProtectedRoute = !['/login', '/register', '/', '/about', '/contact', '/help'].includes(location.pathname);
+  if (loading && isProtectedRoute) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
   }
 
   return (
