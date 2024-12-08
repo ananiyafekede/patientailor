@@ -1,49 +1,67 @@
-import { Calendar, UserRound, Stethoscope, CreditCard } from "lucide-react";
+import { 
+  Stethoscope, 
+  Calendar, 
+  ClipboardList, 
+  HeartPulse,
+  Clock,
+  Users
+} from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-
-const services = [
-  {
-    icon: Calendar,
-    title: "Online Appointments",
-    description: "Book and manage your appointments with ease through our online system.",
-  },
-  {
-    icon: UserRound,
-    title: "Specialist Doctors",
-    description: "Access to highly qualified specialists across various medical fields.",
-  },
-  {
-    icon: Stethoscope,
-    title: "Treatment History Access",
-    description: "View and track your complete medical history securely online.",
-  },
-  {
-    icon: CreditCard,
-    title: "Secure Billing & Payments",
-    description: "Convenient and secure online payment options for all services.",
-  },
-];
 
 export const Services = () => {
+  const services = [
+    {
+      title: "Expert Doctors",
+      description: "Access to qualified healthcare professionals",
+      icon: Stethoscope,
+    },
+    {
+      title: "Easy Scheduling",
+      description: "Book appointments with just a few clicks",
+      icon: Calendar,
+    },
+    {
+      title: "Digital Records",
+      description: "Secure electronic health records system",
+      icon: ClipboardList,
+    },
+    {
+      title: "24/7 Care",
+      description: "Round-the-clock medical assistance",
+      icon: Clock,
+    },
+    {
+      title: "Patient Portal",
+      description: "Manage your healthcare journey online",
+      icon: Users,
+    },
+    {
+      title: "Emergency Care",
+      description: "Immediate response for urgent cases",
+      icon: HeartPulse,
+    },
+  ];
+
   return (
-    <section className="py-16 bg-white">
+    <section className="py-20">
       <div className="container mx-auto px-4">
-        <h2 className="text-3xl font-bold text-center mb-12">Our Services</h2>
-        <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-4">
+        <div className="mb-12 text-center">
+          <h2 className="text-3xl font-bold">Our Services</h2>
+          <p className="mt-4 text-gray-600 dark:text-gray-300">
+            Comprehensive healthcare services tailored to your needs
+          </p>
+        </div>
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {services.map((service, index) => (
-            <Card key={index} className="hover:shadow-lg transition-shadow">
+            <Card key={index} className="transition-all hover:shadow-lg">
               <CardHeader>
-                <div className="flex justify-center mb-4">
-                  <service.icon className="h-12 w-12 text-primary" />
-                </div>
-                <CardTitle className="text-center">{service.title}</CardTitle>
+                <CardTitle className="flex items-center gap-3">
+                  <service.icon className="h-6 w-6 text-blue-600" />
+                  {service.title}
+                </CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-center text-gray-600">{service.description}</p>
-                <Button variant="link" className="w-full mt-4">
-                  Learn More
-                </Button>
+                <p className="text-gray-600 dark:text-gray-300">{service.description}</p>
               </CardContent>
             </Card>
           ))}
