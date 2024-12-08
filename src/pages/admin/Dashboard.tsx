@@ -6,6 +6,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { DashboardStats } from "@/components/admin/DashboardStats";
 import { DashboardCharts } from "@/components/admin/DashboardCharts";
 import { Spinner } from "@/components/ui/spinner";
+import { SidebarProvider } from "@/components/ui/sidebar";
+import { AdminSidebar } from "@/components/admin/AdminSidebar";
 import toast from "react-hot-toast";
 
 const AdminDashboard = () => {
@@ -61,18 +63,33 @@ const AdminDashboard = () => {
         <title>Admin Dashboard - Hospital Management System</title>
       </Helmet>
 
-      <div className="container mx-auto p-6 space-y-6 bg-gray-50 min-h-screen">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-        >
-          <h1 className="text-3xl font-bold text-gray-900 mb-8">Admin Dashboard</h1>
-          
-          <DashboardStats stats={stats} />
-          <DashboardCharts />
-        </motion.div>
-      </div>
+      <SidebarProvider>
+        <div className="min-h-screen flex w-full bg-gray-50 dark:bg-gray-900">
+          <AdminSidebar />
+          <main className="flex-1 p-6 lg:px-8">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+              className="space-y-6"
+            >
+              <div className="flex items-center justify-between">
+                <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white">
+                  Admin Dashboard
+                </h1>
+                <div className="flex items-center space-x-4">
+                  <span className="text-sm text-gray-500 dark:text-gray-400">
+                    Last updated: {new Date().toLocaleString()}
+                  </span>
+                </div>
+              </div>
+              
+              <DashboardStats stats={stats} />
+              <DashboardCharts />
+            </motion.div>
+          </main>
+        </div>
+      </SidebarProvider>
     </>
   );
 };

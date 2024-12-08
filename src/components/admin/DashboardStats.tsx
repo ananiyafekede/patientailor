@@ -17,15 +17,17 @@ export const DashboardStats = ({ stats }: DashboardStatsProps) => {
         whileHover={{ scale: 1.02 }}
         transition={{ type: "spring", stiffness: 300 }}
       >
-        <Card className="bg-gradient-to-br from-blue-500 to-blue-600 text-white">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Users className="h-6 w-6" />
+        <Card className="relative overflow-hidden bg-gradient-to-br from-blue-500 to-blue-600 text-white">
+          <div className="absolute right-0 top-0 h-full w-24 bg-blue-600/20 transform skew-x-12" />
+          <CardHeader className="pb-2">
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <Users className="h-5 w-5" />
               Total Doctors
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-4xl font-bold">{stats?.totalDoctors}</p>
+            <p className="text-3xl font-bold">{stats?.totalDoctors}</p>
+            <p className="text-blue-100 text-sm mt-2">Active medical professionals</p>
           </CardContent>
         </Card>
       </motion.div>
@@ -34,15 +36,17 @@ export const DashboardStats = ({ stats }: DashboardStatsProps) => {
         whileHover={{ scale: 1.02 }}
         transition={{ type: "spring", stiffness: 300 }}
       >
-        <Card className="bg-gradient-to-br from-green-500 to-green-600 text-white">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <UserPlus className="h-6 w-6" />
+        <Card className="relative overflow-hidden bg-gradient-to-br from-green-500 to-green-600 text-white">
+          <div className="absolute right-0 top-0 h-full w-24 bg-green-600/20 transform skew-x-12" />
+          <CardHeader className="pb-2">
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <UserPlus className="h-5 w-5" />
               Total Patients
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-4xl font-bold">{stats?.totalPatients}</p>
+            <p className="text-3xl font-bold">{stats?.totalPatients}</p>
+            <p className="text-green-100 text-sm mt-2">Registered patients</p>
           </CardContent>
         </Card>
       </motion.div>
@@ -51,15 +55,17 @@ export const DashboardStats = ({ stats }: DashboardStatsProps) => {
         whileHover={{ scale: 1.02 }}
         transition={{ type: "spring", stiffness: 300 }}
       >
-        <Card className="bg-gradient-to-br from-purple-500 to-purple-600 text-white">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Calendar className="h-6 w-6" />
+        <Card className="relative overflow-hidden bg-gradient-to-br from-purple-500 to-purple-600 text-white">
+          <div className="absolute right-0 top-0 h-full w-24 bg-purple-600/20 transform skew-x-12" />
+          <CardHeader className="pb-2">
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <Calendar className="h-5 w-5" />
               Total Appointments
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-4xl font-bold">{stats?.totalAppointments}</p>
+            <p className="text-3xl font-bold">{stats?.totalAppointments}</p>
+            <p className="text-purple-100 text-sm mt-2">Scheduled consultations</p>
           </CardContent>
         </Card>
       </motion.div>
