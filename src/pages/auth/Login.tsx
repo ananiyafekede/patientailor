@@ -13,14 +13,26 @@ const Login = () => {
   useEffect(() => {
     // Check if user is already logged in
     const checkUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
+      const { data: { session }, error } = await supabase.auth.getSession();
+      
+      if (error) {
+        console.error('Session check error:', error);
+        return;
+      }
+
+      if (session?.user) {
+        console.log('User already logged in:', session.user.email);
         // Get user profile to determine role
-        const { data: profile } = await supabase
+        const { data: profile, error: profileError } = await supabase
           .from('profiles')
           .select('role')
-          .eq('id', user.id)
+          .eq('id', session.user.id)
           .single();
+
+        if (profileError) {
+          console.error('Profile fetch error:', profileError);
+          return;
+        }
 
         if (profile?.role) {
           // Redirect based on role
@@ -45,13 +57,22 @@ const Login = () => {
 
     // Listen for auth state changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log('Auth event:', event);
+      
       if (event === 'SIGNED_IN' && session?.user) {
+        console.log('User signed in:', session.user.email);
         // Get user profile to determine role
-        const { data: profile } = await supabase
+        const { data: profile, error: profileError } = await supabase
           .from('profiles')
           .select('role')
           .eq('id', session.user.id)
           .single();
+
+        if (profileError) {
+          console.error('Profile fetch error:', profileError);
+          toast.error('Error loading user profile');
+          return;
+        }
 
         if (profile?.role) {
           toast.success('Successfully logged in!');

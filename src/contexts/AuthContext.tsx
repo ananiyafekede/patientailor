@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 import { User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
+import toast from 'react-hot-toast';
 
 interface AuthContextType {
   user: User | null;
@@ -20,40 +21,71 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [userRole, setUserRole] = useState<string | null>(null);
 
   useEffect(() => {
-    // Check current user and set initial state
+    // Get initial session
     const initializeAuth = async () => {
-      const { data: { user: currentUser } } = await supabase.auth.getUser();
-      setUser(currentUser);
-
-      if (currentUser) {
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('role')
-          .eq('id', currentUser.id)
-          .single();
+      try {
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
         
-        setUserRole(profile?.role || null);
+        if (sessionError) {
+          console.error('Session error:', sessionError);
+          throw sessionError;
+        }
+
+        if (session?.user) {
+          setUser(session.user);
+          const { data: profile, error: profileError } = await supabase
+            .from('profiles')
+            .select('role')
+            .eq('id', session.user.id)
+            .single();
+
+          if (profileError) {
+            console.error('Profile error:', profileError);
+            throw profileError;
+          }
+
+          setUserRole(profile?.role || null);
+        }
+      } catch (error) {
+        console.error('Auth initialization error:', error);
+        toast.error('Authentication error occurred');
+      } finally {
+        setLoading(false);
       }
-      
-      setLoading(false);
     };
 
     initializeAuth();
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      setUser(session?.user || null);
+      console.log('Auth state changed:', event, session?.user?.email);
       
-      if (session?.user) {
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('role')
-          .eq('id', session.user.id)
-          .single();
-        
-        setUserRole(profile?.role || null);
-      } else {
+      if (event === 'SIGNED_OUT') {
+        setUser(null);
         setUserRole(null);
+        setLoading(false);
+        return;
+      }
+
+      if (session?.user) {
+        setUser(session.user);
+        try {
+          const { data: profile, error: profileError } = await supabase
+            .from('profiles')
+            .select('role')
+            .eq('id', session.user.id)
+            .single();
+
+          if (profileError) {
+            console.error('Profile fetch error:', profileError);
+            throw profileError;
+          }
+
+          setUserRole(profile?.role || null);
+        } catch (error) {
+          console.error('Error fetching user profile:', error);
+          toast.error('Error loading user profile');
+        }
       }
       
       setLoading(false);
