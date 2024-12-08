@@ -1,8 +1,9 @@
 import { ReactNode, useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { User } from "@supabase/supabase-js";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
+import toast from "react-hot-toast";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -18,57 +19,93 @@ interface MainLayoutProps {
 
 export const MainLayout = ({ children }: MainLayoutProps) => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [user, setUser] = useState<User | null>(null);
   const [userRole, setUserRole] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null);
-      if (session?.user) {
-        // Fetch user role from profiles table
-        supabase
-          .from('profiles')
-          .select('role')
-          .eq('id', session.user.id)
-          .single()
-          .then(({ data, error }) => {
-            if (!error && data) {
-              setUserRole(data.role);
+    const initializeAuth = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        setUser(session?.user ?? null);
+        
+        if (session?.user) {
+          const { data: profile, error } = await supabase
+            .from('profiles')
+            .select('role')
+            .eq('id', session.user.id)
+            .single();
+          
+          if (error) throw error;
+          
+          setUserRole(profile?.role);
+          
+          // Redirect based on role if on login page
+          if (location.pathname === '/login') {
+            switch (profile?.role) {
+              case 'admin':
+                navigate('/admin/dashboard');
+                break;
+              case 'doctor':
+                navigate('/doctor/dashboard');
+                break;
+              case 'patient':
+                navigate('/patient/dashboard');
+                break;
+              default:
+                navigate('/');
             }
-          });
+          }
+        }
+        setLoading(false);
+      } catch (error) {
+        console.error('Auth error:', error);
+        toast.error('Authentication error');
+        setLoading(false);
       }
-    });
+    };
+
+    initializeAuth();
 
     // Listen for auth changes
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
       setUser(session?.user ?? null);
+      
       if (session?.user) {
-        // Fetch user role when auth state changes
-        supabase
+        const { data: profile } = await supabase
           .from('profiles')
           .select('role')
           .eq('id', session.user.id)
-          .single()
-          .then(({ data, error }) => {
-            if (!error && data) {
-              setUserRole(data.role);
-            }
-          });
+          .single();
+        
+        setUserRole(profile?.role);
       } else {
         setUserRole(null);
+        if (location.pathname !== '/login' && location.pathname !== '/register') {
+          navigate('/login');
+        }
       }
     });
 
     return () => subscription.unsubscribe();
-  }, []);
+  }, [navigate, location.pathname]);
 
   const handleLogout = async () => {
-    await supabase.auth.signOut();
-    navigate("/login");
+    try {
+      await supabase.auth.signOut();
+      toast.success('Logged out successfully');
+      navigate("/login");
+    } catch (error) {
+      console.error('Logout error:', error);
+      toast.error('Error logging out');
+    }
   };
+
+  if (loading) {
+    return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -87,11 +124,18 @@ export const MainLayout = ({ children }: MainLayoutProps) => {
             <Button variant="ghost" onClick={() => navigate("/about")}>About</Button>
             <Button variant="ghost" onClick={() => navigate("/contact")}>Contact</Button>
             <Button variant="ghost" onClick={() => navigate("/help")}>Help</Button>
+            {user && userRole === 'admin' && (
+              <Button variant="ghost" onClick={() => navigate("/admin/dashboard")}>
+                Admin Dashboard
+              </Button>
+            )}
+            {user && userRole === 'doctor' && (
+              <Button variant="ghost" onClick={() => navigate("/doctor/dashboard")}>
+                Doctor Dashboard
+              </Button>
+            )}
             {user && userRole === 'patient' && (
-              <Button 
-                variant="ghost" 
-                onClick={() => navigate("/patient/dashboard")}
-              >
+              <Button variant="ghost" onClick={() => navigate("/patient/dashboard")}>
                 Patient Dashboard
               </Button>
             )}
@@ -107,6 +151,16 @@ export const MainLayout = ({ children }: MainLayoutProps) => {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
+                  {userRole === 'admin' && (
+                    <DropdownMenuItem onClick={() => navigate("/admin/dashboard")}>
+                      Admin Dashboard
+                    </DropdownMenuItem>
+                  )}
+                  {userRole === 'doctor' && (
+                    <DropdownMenuItem onClick={() => navigate("/doctor/dashboard")}>
+                      Doctor Dashboard
+                    </DropdownMenuItem>
+                  )}
                   {userRole === 'patient' && (
                     <DropdownMenuItem onClick={() => navigate("/patient/dashboard")}>
                       Patient Dashboard
@@ -124,15 +178,10 @@ export const MainLayout = ({ children }: MainLayoutProps) => {
               </DropdownMenu>
             ) : (
               <>
-                <Button
-                  variant="ghost"
-                  onClick={() => navigate("/login")}
-                >
+                <Button variant="ghost" onClick={() => navigate("/login")}>
                   Login
                 </Button>
-                <Button
-                  onClick={() => navigate("/register")}
-                >
+                <Button onClick={() => navigate("/register")}>
                   Register
                 </Button>
               </>
