@@ -11,7 +11,8 @@ const Login = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Check if user is already logged in
+    console.log('Login component mounted');
+    
     const checkUser = async () => {
       const { data: { session }, error } = await supabase.auth.getSession();
       
@@ -22,46 +23,6 @@ const Login = () => {
 
       if (session?.user) {
         console.log('User already logged in:', session.user.email);
-        // Get user profile to determine role
-        const { data: profile, error: profileError } = await supabase
-          .from('profiles')
-          .select('role')
-          .eq('id', session.user.id)
-          .single();
-
-        if (profileError) {
-          console.error('Profile fetch error:', profileError);
-          return;
-        }
-
-        if (profile?.role) {
-          // Redirect based on role
-          switch (profile.role) {
-            case 'doctor':
-              navigate('/doctor/dashboard');
-              break;
-            case 'patient':
-              navigate('/patient/dashboard');
-              break;
-            case 'admin':
-              navigate('/admin/dashboard');
-              break;
-            default:
-              navigate('/');
-          }
-        }
-      }
-    };
-
-    checkUser();
-
-    // Listen for auth state changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log('Auth event:', event);
-      
-      if (event === 'SIGNED_IN' && session?.user) {
-        console.log('User signed in:', session.user.email);
-        // Get user profile to determine role
         const { data: profile, error: profileError } = await supabase
           .from('profiles')
           .select('role')
@@ -74,23 +35,33 @@ const Login = () => {
           return;
         }
 
-        if (profile?.role) {
-          toast.success('Successfully logged in!');
-          // Redirect based on role
-          switch (profile.role) {
-            case 'doctor':
-              navigate('/doctor/dashboard');
-              break;
-            case 'patient':
-              navigate('/patient/dashboard');
-              break;
-            case 'admin':
-              navigate('/admin/dashboard');
-              break;
-            default:
-              navigate('/');
-          }
+        console.log('User profile:', profile);
+        handleRedirect(profile?.role);
+      }
+    };
+
+    checkUser();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log('Auth event:', event);
+      
+      if (event === 'SIGNED_IN' && session?.user) {
+        console.log('User signed in:', session.user.email);
+        const { data: profile, error: profileError } = await supabase
+          .from('profiles')
+          .select('role')
+          .eq('id', session.user.id)
+          .single();
+
+        if (profileError) {
+          console.error('Profile fetch error:', profileError);
+          toast.error('Error loading user profile');
+          return;
         }
+
+        console.log('User profile after sign in:', profile);
+        toast.success('Successfully logged in!');
+        handleRedirect(profile?.role);
       }
     });
 
@@ -98,6 +69,23 @@ const Login = () => {
       subscription.unsubscribe();
     };
   }, [navigate]);
+
+  const handleRedirect = (role: string | null) => {
+    console.log('Redirecting based on role:', role);
+    switch (role) {
+      case 'admin':
+        navigate('/admin/dashboard');
+        break;
+      case 'doctor':
+        navigate('/doctor/dashboard');
+        break;
+      case 'patient':
+        navigate('/patient/dashboard');
+        break;
+      default:
+        navigate('/');
+    }
+  };
 
   return (
     <>

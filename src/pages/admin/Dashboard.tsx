@@ -49,14 +49,6 @@ const AdminDashboard = () => {
     }
   }, [error]);
 
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <Spinner />
-      </div>
-    );
-  }
-
   return (
     <>
       <Helmet>
@@ -64,17 +56,19 @@ const AdminDashboard = () => {
       </Helmet>
 
       <SidebarProvider>
-        <div className="min-h-screen flex w-full bg-gray-50 dark:bg-gray-900">
-          <AdminSidebar />
-          <main className="flex-1 p-6 lg:px-8">
+        <div className="min-h-screen flex flex-col md:flex-row w-full bg-gray-50 dark:bg-gray-900">
+          <div className="md:w-64 flex-shrink-0">
+            <AdminSidebar />
+          </div>
+          <main className="flex-1 p-4 md:p-6 lg:p-8 overflow-x-hidden">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5 }}
               className="space-y-6"
             >
-              <div className="flex items-center justify-between">
-                <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white">
+              <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-gray-900 dark:text-white">
                   Admin Dashboard
                 </h1>
                 <div className="flex items-center space-x-4">
@@ -84,8 +78,14 @@ const AdminDashboard = () => {
                 </div>
               </div>
               
-              <DashboardStats stats={stats} />
-              <DashboardCharts />
+              {isLoading ? (
+                <Spinner />
+              ) : (
+                <>
+                  <DashboardStats stats={stats} />
+                  <DashboardCharts />
+                </>
+              )}
             </motion.div>
           </main>
         </div>
