@@ -11,6 +11,7 @@ import Contact from "./pages/Contact";
 import Help from "./pages/Help";
 import Login from "./pages/auth/Login";
 import Register from "./pages/auth/Register";
+import Profile from "./pages/Profile";
 import PatientDashboard from "./pages/patient/Dashboard";
 import DoctorDashboard from "./pages/doctor/Dashboard";
 import AdminDashboard from "./pages/admin/Dashboard";
@@ -49,6 +50,11 @@ const App = () => (
             <Route path="/help" element={<MainLayout><Help /></MainLayout>} />
             <Route path="/login" element={<MainLayout><Login /></MainLayout>} />
             <Route path="/register" element={<MainLayout><Register /></MainLayout>} />
+            <Route path="/profile" element={
+              <ProtectedRoute>
+                <MainLayout><Profile /></MainLayout>
+              </ProtectedRoute>
+            } />
             <Route path="/patient/dashboard" element={
               <ProtectedRoute allowedRoles={["patient"]}>
                 <MainLayout><PatientDashboard /></MainLayout>
