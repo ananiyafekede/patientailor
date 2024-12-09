@@ -5,9 +5,13 @@ import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { DashboardStats } from "@/components/admin/DashboardStats";
 import { DashboardCharts } from "@/components/admin/DashboardCharts";
+import { UsersTable } from "@/components/admin/UsersTable";
+import { AppointmentsTable } from "@/components/admin/AppointmentsTable";
+import { NotificationsTable } from "@/components/admin/NotificationsTable";
 import { Spinner } from "@/components/ui/spinner";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { AdminSidebar } from "@/components/admin/AdminSidebar";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import toast from "react-hot-toast";
 
 const AdminDashboard = () => {
@@ -56,7 +60,7 @@ const AdminDashboard = () => {
       </Helmet>
 
       <SidebarProvider>
-        <div className="min-h-screen flex flex-col md:flex-row w-full bg-gray-50 dark:bg-gray-900">
+        <div className="min-h-screen flex flex-col md:flex-row w-full bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-gray-900 dark:to-gray-800">
           <div className="md:w-64 flex-shrink-0">
             <AdminSidebar />
           </div>
@@ -68,7 +72,7 @@ const AdminDashboard = () => {
               className="space-y-6"
             >
               <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-gray-900 dark:text-white">
+                <h1 className="text-2xl md:text-3xl font-bold tracking-tight">
                   Admin Dashboard
                 </h1>
                 <div className="flex items-center space-x-4">
@@ -84,6 +88,26 @@ const AdminDashboard = () => {
                 <>
                   <DashboardStats stats={stats} />
                   <DashboardCharts />
+                  
+                  <Tabs defaultValue="users" className="space-y-6">
+                    <TabsList className="bg-white/50 backdrop-blur border-none">
+                      <TabsTrigger value="users">Users</TabsTrigger>
+                      <TabsTrigger value="appointments">Appointments</TabsTrigger>
+                      <TabsTrigger value="notifications">Notifications</TabsTrigger>
+                    </TabsList>
+                    
+                    <TabsContent value="users" className="space-y-4">
+                      <UsersTable />
+                    </TabsContent>
+                    
+                    <TabsContent value="appointments" className="space-y-4">
+                      <AppointmentsTable />
+                    </TabsContent>
+                    
+                    <TabsContent value="notifications" className="space-y-4">
+                      <NotificationsTable />
+                    </TabsContent>
+                  </Tabs>
                 </>
               )}
             </motion.div>
