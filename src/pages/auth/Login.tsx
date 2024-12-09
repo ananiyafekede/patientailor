@@ -1,42 +1,54 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Auth } from "@supabase/auth-ui-react";
 import { ThemeSupa } from "@supabase/auth-ui-shared";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Helmet } from "react-helmet-async";
+import { Spinner } from "@/components/ui/spinner";
 import toast from "react-hot-toast";
 
 const Login = () => {
   const navigate = useNavigate();
+  const [loading, setLoading] = useState(true);
+  const [initialCheckDone, setInitialCheckDone] = useState(false);
 
   useEffect(() => {
     console.log('Login component mounted');
     
     const checkUser = async () => {
-      const { data: { session }, error } = await supabase.auth.getSession();
-      
-      if (error) {
-        console.error('Session check error:', error);
-        return;
-      }
-
-      if (session?.user) {
-        console.log('User already logged in:', session.user.email);
-        const { data: profile, error: profileError } = await supabase
-          .from('profiles')
-          .select('role')
-          .eq('id', session.user.id)
-          .single();
-
-        if (profileError) {
-          console.error('Profile fetch error:', profileError);
-          toast.error('Error loading user profile');
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession();
+        
+        if (error) {
+          console.error('Session check error:', error);
+          toast.error('Error checking session');
           return;
         }
 
-        console.log('User profile:', profile);
-        handleRedirect(profile?.role);
+        if (session?.user) {
+          console.log('User already logged in:', session.user.email);
+          const { data: profile, error: profileError } = await supabase
+            .from('profiles')
+            .select('role')
+            .eq('id', session.user.id)
+            .single();
+
+          if (profileError) {
+            console.error('Profile fetch error:', profileError);
+            toast.error('Error loading user profile');
+            return;
+          }
+
+          console.log('User profile:', profile);
+          handleRedirect(profile?.role);
+        }
+      } catch (error) {
+        console.error('Auth check error:', error);
+        toast.error('Authentication error occurred');
+      } finally {
+        setLoading(false);
+        setInitialCheckDone(true);
       }
     };
 
@@ -46,22 +58,31 @@ const Login = () => {
       console.log('Auth event:', event);
       
       if (event === 'SIGNED_IN' && session?.user) {
+        setLoading(true);
         console.log('User signed in:', session.user.email);
-        const { data: profile, error: profileError } = await supabase
-          .from('profiles')
-          .select('role')
-          .eq('id', session.user.id)
-          .single();
+        
+        try {
+          const { data: profile, error: profileError } = await supabase
+            .from('profiles')
+            .select('role')
+            .eq('id', session.user.id)
+            .single();
 
-        if (profileError) {
-          console.error('Profile fetch error:', profileError);
-          toast.error('Error loading user profile');
-          return;
+          if (profileError) {
+            console.error('Profile fetch error:', profileError);
+            toast.error('Error loading user profile');
+            return;
+          }
+
+          console.log('User profile after sign in:', profile);
+          toast.success('Successfully logged in!');
+          handleRedirect(profile?.role);
+        } catch (error) {
+          console.error('Error after sign in:', error);
+          toast.error('Error processing login');
+        } finally {
+          setLoading(false);
         }
-
-        console.log('User profile after sign in:', profile);
-        toast.success('Successfully logged in!');
-        handleRedirect(profile?.role);
       }
     });
 
@@ -86,6 +107,14 @@ const Login = () => {
         navigate('/');
     }
   };
+
+  if (loading && !initialCheckDone) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <Spinner />
+      </div>
+    );
+  }
 
   return (
     <>
