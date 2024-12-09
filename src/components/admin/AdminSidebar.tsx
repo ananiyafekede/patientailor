@@ -1,3 +1,4 @@
+import { useNavigate, useLocation } from "react-router-dom";
 import { 
   LayoutDashboard, 
   Users, 
@@ -26,31 +27,34 @@ const menuItems = [
   {
     title: "Users",
     icon: Users,
-    url: "#"
+    url: "/admin/users"
   },
   {
     title: "Appointments",
     icon: Calendar,
-    url: "#"
+    url: "/admin/appointments"
   },
   {
     title: "Database",
     icon: Database,
-    url: "#"
+    url: "/admin/database"
   },
   {
     title: "Notifications",
     icon: Bell,
-    url: "#"
+    url: "/admin/notifications"
   },
   {
     title: "Settings",
     icon: Settings,
-    url: "#"
+    url: "/admin/settings"
   }
 ];
 
 export function AdminSidebar() {
+  const navigate = useNavigate();
+  const location = useLocation();
+
   return (
     <Sidebar>
       <SidebarContent>
@@ -63,11 +67,16 @@ export function AdminSidebar() {
             <SidebarMenu>
               {menuItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild>
-                    <a href={item.url} className="flex items-center gap-3 px-3 py-2">
-                      <item.icon className="h-5 w-5" />
-                      <span>{item.title}</span>
-                    </a>
+                  <SidebarMenuButton
+                    onClick={() => navigate(item.url)}
+                    className={`flex items-center gap-3 px-3 py-2 w-full transition-colors ${
+                      location.pathname === item.url
+                        ? "bg-primary/10 text-primary"
+                        : "hover:bg-accent hover:text-accent-foreground"
+                    }`}
+                  >
+                    <item.icon className="h-5 w-5" />
+                    <span>{item.title}</span>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
