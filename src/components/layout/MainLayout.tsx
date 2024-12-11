@@ -24,9 +24,21 @@ export const MainLayout = ({ children }: MainLayoutProps) => {
 
   const handleLogout = async () => {
     try {
-      await supabase.auth.signOut();
+      // Clear any local storage items
+      localStorage.removeItem('user');
+      
+      // Sign out from Supabase
+      const { error } = await supabase.auth.signOut();
+      
+      if (error) {
+        throw error;
+      }
+
+      // Show success message
       toast.success('Logged out successfully');
-      navigate("/login");
+      
+      // Navigate to login page
+      navigate("/login", { replace: true });
     } catch (error) {
       console.error('Logout error:', error);
       toast.error('Error logging out');

@@ -33,18 +33,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
         if (session?.user) {
           setUser(session.user);
-          const { data: profile, error: profileError } = await supabase
-            .from('profiles')
-            .select('role')
-            .eq('id', session.user.id)
-            .single();
-
-          if (profileError) {
-            console.error('Profile error:', profileError);
-            throw profileError;
-          }
-
-          setUserRole(profile?.role || null);
+          // For development, we'll use static role data
+          setUserRole('admin');
+        } else {
+          setUser(null);
+          setUserRole(null);
         }
       } catch (error) {
         console.error('Auth initialization error:', error);
@@ -69,23 +62,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
       if (session?.user) {
         setUser(session.user);
-        try {
-          const { data: profile, error: profileError } = await supabase
-            .from('profiles')
-            .select('role')
-            .eq('id', session.user.id)
-            .single();
-
-          if (profileError) {
-            console.error('Profile fetch error:', profileError);
-            throw profileError;
-          }
-
-          setUserRole(profile?.role || null);
-        } catch (error) {
-          console.error('Error fetching user profile:', error);
-          toast.error('Error loading user profile');
-        }
+        // For development, we'll use static role data
+        setUserRole('admin');
       }
       
       setLoading(false);
