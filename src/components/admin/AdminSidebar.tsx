@@ -14,13 +14,13 @@ import {
   SidebarGroupContent,
   SidebarGroupLabel,
   SidebarMenu,
-  SidebarMenuButton,
   SidebarMenuItem,
+  SidebarMenuButton,
 } from "@/components/ui/sidebar";
 
 const menuItems = [
   {
-    title: "Dashboard",
+    title: "Overview",
     icon: LayoutDashboard,
     url: "/admin/dashboard"
   },
@@ -55,6 +55,11 @@ export function AdminSidebar() {
   const navigate = useNavigate();
   const location = useLocation();
 
+  const isActiveRoute = (path: string) => {
+    // Handle both exact matches and sub-routes
+    return location.pathname === path || location.pathname.startsWith(path);
+  };
+
   return (
     <Sidebar>
       <SidebarContent>
@@ -70,8 +75,8 @@ export function AdminSidebar() {
                   <SidebarMenuButton
                     onClick={() => navigate(item.url)}
                     className={`flex items-center gap-3 px-3 py-2 w-full transition-colors ${
-                      location.pathname === item.url
-                        ? "bg-primary/10 text-primary"
+                      isActiveRoute(item.url)
+                        ? "bg-primary/10 text-primary font-medium"
                         : "hover:bg-accent hover:text-accent-foreground"
                     }`}
                   >

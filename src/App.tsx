@@ -15,6 +15,9 @@ import Profile from "./pages/Profile";
 import PatientDashboard from "./pages/patient/Dashboard";
 import DoctorDashboard from "./pages/doctor/Dashboard";
 import AdminDashboard from "./pages/admin/Dashboard";
+import { UsersTable } from "./components/admin/UsersTable";
+import { AppointmentsTable } from "./components/admin/AppointmentsTable";
+import { NotificationsTable } from "./components/admin/NotificationsTable";
 
 const queryClient = new QueryClient();
 
@@ -65,9 +68,18 @@ const App = () => (
                 <MainLayout><DoctorDashboard /></MainLayout>
               </ProtectedRoute>
             } />
-            <Route path="/admin/dashboard" element={
+            <Route path="/admin/*" element={
               <ProtectedRoute allowedRoles={["admin"]}>
-                <MainLayout><AdminDashboard /></MainLayout>
+                <MainLayout>
+                  <Routes>
+                    <Route path="dashboard" element={<AdminDashboard />} />
+                    <Route path="users" element={<UsersTable />} />
+                    <Route path="appointments" element={<AppointmentsTable />} />
+                    <Route path="notifications" element={<NotificationsTable />} />
+                    <Route path="settings" element={<div>Settings Page</div>} />
+                    <Route path="database" element={<div>Database Management</div>} />
+                  </Routes>
+                </MainLayout>
               </ProtectedRoute>
             } />
           </Routes>
