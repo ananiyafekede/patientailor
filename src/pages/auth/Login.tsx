@@ -1,120 +1,54 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Auth } from "@supabase/auth-ui-react";
 import { ThemeSupa } from "@supabase/auth-ui-shared";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Helmet } from "react-helmet-async";
-import { Spinner } from "@/components/ui/spinner";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import toast from "react-hot-toast";
 
 const Login = () => {
   const navigate = useNavigate();
-  const [loading, setLoading] = useState(true);
-  const [initialCheckDone, setInitialCheckDone] = useState(false);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
 
-  useEffect(() => {
-    console.log('Login component mounted');
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
     
-    const checkUser = async () => {
-      try {
-        const { data: { session }, error } = await supabase.auth.getSession();
-        
-        if (error) {
-          console.error('Session check error:', error);
-          toast.error('Error checking session');
-          return;
-        }
+    // Static user data for development
+    const staticUsers = [
+      { email: 'admin@example.com', password: 'admin123', role: 'admin' },
+      { email: 'doctor@example.com', password: 'doctor123', role: 'doctor' },
+      { email: 'patient@example.com', password: 'patient123', role: 'patient' }
+    ];
 
-        if (session?.user) {
-          console.log('User already logged in:', session.user.email);
-          const { data: profile, error: profileError } = await supabase
-            .from('profiles')
-            .select('role')
-            .eq('id', session.user.id)
-            .single();
+    const user = staticUsers.find(u => u.email === email && u.password === password);
 
-          if (profileError) {
-            console.error('Profile fetch error:', profileError);
-            toast.error('Error loading user profile');
-            return;
-          }
-
-          console.log('User profile:', profile);
-          handleRedirect(profile?.role);
-        }
-      } catch (error) {
-        console.error('Auth check error:', error);
-        toast.error('Authentication error occurred');
-      } finally {
-        setLoading(false);
-        setInitialCheckDone(true);
-      }
-    };
-
-    checkUser();
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log('Auth event:', event);
+    if (user) {
+      toast.success('Successfully logged in!');
+      localStorage.setItem('user', JSON.stringify({ email: user.email, role: user.role }));
       
-      if (event === 'SIGNED_IN' && session?.user) {
-        setLoading(true);
-        console.log('User signed in:', session.user.email);
-        
-        try {
-          const { data: profile, error: profileError } = await supabase
-            .from('profiles')
-            .select('role')
-            .eq('id', session.user.id)
-            .single();
-
-          if (profileError) {
-            console.error('Profile fetch error:', profileError);
-            toast.error('Error loading user profile');
-            return;
-          }
-
-          console.log('User profile after sign in:', profile);
-          toast.success('Successfully logged in!');
-          handleRedirect(profile?.role);
-        } catch (error) {
-          console.error('Error after sign in:', error);
-          toast.error('Error processing login');
-        } finally {
-          setLoading(false);
-        }
+      // Redirect based on role
+      switch (user.role) {
+        case 'admin':
+          navigate('/admin/dashboard');
+          break;
+        case 'doctor':
+          navigate('/doctor/dashboard');
+          break;
+        case 'patient':
+          navigate('/patient/dashboard');
+          break;
+        default:
+          navigate('/');
       }
-    });
-
-    return () => {
-      subscription.unsubscribe();
-    };
-  }, [navigate]);
-
-  const handleRedirect = (role: string | null) => {
-    console.log('Redirecting based on role:', role);
-    switch (role) {
-      case 'admin':
-        navigate('/admin/dashboard');
-        break;
-      case 'doctor':
-        navigate('/doctor/dashboard');
-        break;
-      case 'patient':
-        navigate('/patient/dashboard');
-        break;
-      default:
-        navigate('/');
+    } else {
+      toast.error('Invalid credentials');
     }
   };
-
-  if (loading && !initialCheckDone) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <Spinner />
-      </div>
-    );
-  }
 
   return (
     <>
@@ -131,21 +65,42 @@ const Login = () => {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Auth
-              supabaseClient={supabase}
-              appearance={{
-                theme: ThemeSupa,
-                variables: {
-                  default: {
-                    colors: {
-                      brand: '#0284c7',
-                      brandAccent: '#0369a1',
-                    },
-                  },
-                },
-              }}
-              providers={[]}
-            />
+            <form onSubmit={handleLogin} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="email">Email</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="Enter your email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="password">Password</Label>
+                <Input
+                  id="password"
+                  type="password"
+                  placeholder="Enter your password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                />
+              </div>
+              <Button className="w-full" type="submit">
+                Login
+              </Button>
+              <div className="text-center text-sm">
+                <Button
+                  variant="link"
+                  className="text-primary"
+                  onClick={() => navigate("/register")}
+                >
+                  Don't have an account? Register
+                </Button>
+              </div>
+            </form>
           </CardContent>
         </Card>
       </div>

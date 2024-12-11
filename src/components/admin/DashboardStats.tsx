@@ -2,15 +2,14 @@ import { motion } from "framer-motion";
 import { Users, UserPlus, Calendar } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
-interface DashboardStatsProps {
-  stats: {
-    totalDoctors: number;
-    totalPatients: number;
-    totalAppointments: number;
-  } | undefined;
-}
+export const DashboardStats = () => {
+  // Static data for development
+  const stats = {
+    totalDoctors: 25,
+    totalPatients: 150,
+    totalAppointments: 75
+  };
 
-export const DashboardStats = ({ stats }: DashboardStatsProps) => {
   return (
     <div className="grid gap-6 mb-8 md:grid-cols-3">
       <motion.div
@@ -26,7 +25,7 @@ export const DashboardStats = ({ stats }: DashboardStatsProps) => {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-bold">{stats?.totalDoctors}</p>
+            <p className="text-3xl font-bold">{stats.totalDoctors}</p>
             <p className="text-blue-100 text-sm mt-2">Active medical professionals</p>
           </CardContent>
         </Card>
@@ -45,7 +44,7 @@ export const DashboardStats = ({ stats }: DashboardStatsProps) => {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-bold">{stats?.totalPatients}</p>
+            <p className="text-3xl font-bold">{stats.totalPatients}</p>
             <p className="text-green-100 text-sm mt-2">Registered patients</p>
           </CardContent>
         </Card>
@@ -64,7 +63,7 @@ export const DashboardStats = ({ stats }: DashboardStatsProps) => {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-bold">{stats?.totalAppointments}</p>
+            <p className="text-3xl font-bold">{stats.totalAppointments}</p>
             <p className="text-purple-100 text-sm mt-2">Scheduled consultations</p>
           </CardContent>
         </Card>

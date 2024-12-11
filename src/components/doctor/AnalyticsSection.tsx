@@ -2,15 +2,23 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
-interface AnalyticsSectionProps {
-  revenueData: Array<{
-    name: string;
-    income: number;
-    expense: number;
-  }>;
-}
+export const AnalyticsSection = () => {
+  // Static data for development
+  const revenueData = [
+    { name: 'Jan', income: 4000, expense: 2400 },
+    { name: 'Feb', income: 3000, expense: 1398 },
+    { name: 'Mar', income: 2000, expense: 9800 },
+    { name: 'Apr', income: 2780, expense: 3908 },
+    { name: 'May', income: 1890, expense: 4800 },
+    { name: 'Jun', income: 2390, expense: 3800 },
+  ];
 
-export const AnalyticsSection = ({ revenueData }: AnalyticsSectionProps) => {
+  const recentActivity = [
+    { id: 1, name: 'Sarah Johnson', action: 'Appointment completed', time: '2:30 PM' },
+    { id: 2, name: 'Mike Smith', action: 'Prescription updated', time: '1:45 PM' },
+    { id: 3, name: 'Emma Davis', action: 'New appointment scheduled', time: '11:20 AM' },
+  ];
+
   return (
     <div className="grid gap-4 grid-cols-1 md:grid-cols-2">
       <Card className="bg-white/50 backdrop-blur border-none shadow-lg">
@@ -46,20 +54,20 @@ export const AnalyticsSection = ({ revenueData }: AnalyticsSectionProps) => {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {[1, 2, 3].map((_, i) => (
-              <div key={i} className="flex items-center gap-4 p-3 rounded-lg hover:bg-gray-50 transition-colors">
+            {recentActivity.map((activity) => (
+              <div key={activity.id} className="flex items-center gap-4 p-3 rounded-lg hover:bg-gray-50 transition-colors">
                 <Avatar className="h-10 w-10">
                   <AvatarImage src="/placeholder.svg" />
-                  <AvatarFallback>P{i + 1}</AvatarFallback>
+                  <AvatarFallback>{activity.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
                 </Avatar>
                 <div className="flex-1">
-                  <p className="text-sm font-medium text-gray-900">Patient {i + 1}</p>
+                  <p className="text-sm font-medium text-gray-900">{activity.name}</p>
                   <p className="text-xs text-gray-500">
-                    Appointment completed
+                    {activity.action}
                   </p>
                 </div>
                 <time className="text-xs text-gray-500">
-                  {new Date().toLocaleTimeString()}
+                  {activity.time}
                 </time>
               </div>
             ))}
