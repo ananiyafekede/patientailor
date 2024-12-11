@@ -2,17 +2,17 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
-export const AnalyticsSection = () => {
-  // Static data for development
-  const revenueData = [
-    { name: 'Jan', income: 4000, expense: 2400 },
-    { name: 'Feb', income: 3000, expense: 1398 },
-    { name: 'Mar', income: 2000, expense: 9800 },
-    { name: 'Apr', income: 2780, expense: 3908 },
-    { name: 'May', income: 1890, expense: 4800 },
-    { name: 'Jun', income: 2390, expense: 3800 },
-  ];
+interface RevenueData {
+  name: string;
+  income: number;
+  expense: number;
+}
 
+interface AnalyticsSectionProps {
+  revenueData: RevenueData[];
+}
+
+export const AnalyticsSection = ({ revenueData }: AnalyticsSectionProps) => {
   const recentActivity = [
     { id: 1, name: 'Sarah Johnson', action: 'Appointment completed', time: '2:30 PM' },
     { id: 2, name: 'Mike Smith', action: 'Prescription updated', time: '1:45 PM' },
