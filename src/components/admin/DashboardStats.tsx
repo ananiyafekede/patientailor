@@ -2,14 +2,19 @@ import { motion } from "framer-motion";
 import { Users, UserPlus, Calendar } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
-export const DashboardStats = () => {
-  // Static data for development
-  const stats = {
-    totalDoctors: 25,
-    totalPatients: 150,
-    totalAppointments: 75
+interface DashboardStatsProps {
+  stats?: {
+    totalDoctors: number;
+    totalPatients: number;
+    totalAppointments: number;
   };
+}
 
+export const DashboardStats = ({ stats = {
+  totalDoctors: 25,
+  totalPatients: 150,
+  totalAppointments: 75
+} }: DashboardStatsProps) => {
   return (
     <div className="grid gap-6 mb-8 md:grid-cols-3">
       <motion.div

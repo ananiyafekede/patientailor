@@ -18,72 +18,31 @@ export const AuthLayout = ({ children }: AuthLayoutProps) => {
   const [authChecked, setAuthChecked] = useState(false);
 
   useEffect(() => {
-    console.log('AuthLayout mounted');
     let mounted = true;
     
     const initializeAuth = async () => {
       try {
-        const { data: { session } } = await supabase.auth.getSession();
-        console.log('Session:', session);
-        
-        if (session?.user && mounted) {
-          setUser(session.user);
-          const { data: profile } = await supabase
-            .from('profiles')
-            .select('role')
-            .eq('id', session.user.id)
-            .single();
-          
-          console.log('Profile:', profile);
-          if (mounted) {
-            setUserRole(profile?.role);
-          }
+        // For development, simulate a successful auth check with static data
+        if (mounted) {
+          setUser({ email: 'admin@example.com' } as User);
+          setUserRole('admin');
+          setAuthChecked(true);
+          setLoading(false);
         }
       } catch (error) {
         console.error('Auth error:', error);
-        toast.error('Authentication error');
-      } finally {
         if (mounted) {
-          setLoading(false);
+          toast.error('Authentication error');
           setAuthChecked(true);
+          setLoading(false);
         }
       }
     };
 
     initializeAuth();
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      console.log('Auth state changed:', _event, session?.user?.email);
-      
-      if (session?.user && mounted) {
-        setUser(session.user);
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('role')
-          .eq('id', session.user.id)
-          .single();
-        
-        if (mounted) {
-          setUserRole(profile?.role);
-        }
-      } else if (mounted) {
-        setUser(null);
-        setUserRole(null);
-        if (location.pathname !== '/login' && location.pathname !== '/register' && 
-            location.pathname !== '/' && location.pathname !== '/about' && 
-            location.pathname !== '/contact' && location.pathname !== '/help') {
-          navigate('/login');
-        }
-      }
-      if (mounted) {
-        setLoading(false);
-        setAuthChecked(true);
-      }
-    });
-
     return () => {
       mounted = false;
-      subscription.unsubscribe();
     };
   }, [navigate, location.pathname]);
 
@@ -98,11 +57,6 @@ export const AuthLayout = ({ children }: AuthLayoutProps) => {
     );
   }
 
-  // If we're on a protected route and have no user after auth check, redirect to login
-  if (authChecked && !user && isProtectedRoute) {
-    navigate('/login');
-    return null;
-  }
-
+  // For development, we'll allow access to all routes
   return <>{children}</>;
 };
