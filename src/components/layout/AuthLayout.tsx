@@ -2,6 +2,7 @@ import { ReactNode, useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
+import { Spinner } from "@/components/ui/spinner";
 import toast from "react-hot-toast";
 
 interface AuthLayoutProps {
@@ -14,16 +15,18 @@ export const AuthLayout = ({ children }: AuthLayoutProps) => {
   const [user, setUser] = useState<User | null>(null);
   const [userRole, setUserRole] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [authChecked, setAuthChecked] = useState(false);
 
   useEffect(() => {
     console.log('AuthLayout mounted');
+    let mounted = true;
     
     const initializeAuth = async () => {
       try {
         const { data: { session } } = await supabase.auth.getSession();
         console.log('Session:', session);
         
-        if (session?.user) {
+        if (session?.user && mounted) {
           setUser(session.user);
           const { data: profile } = await supabase
             .from('profiles')
@@ -32,13 +35,18 @@ export const AuthLayout = ({ children }: AuthLayoutProps) => {
             .single();
           
           console.log('Profile:', profile);
-          setUserRole(profile?.role);
+          if (mounted) {
+            setUserRole(profile?.role);
+          }
         }
       } catch (error) {
         console.error('Auth error:', error);
         toast.error('Authentication error');
       } finally {
-        setLoading(false);
+        if (mounted) {
+          setLoading(false);
+          setAuthChecked(true);
+        }
       }
     };
 
@@ -47,7 +55,7 @@ export const AuthLayout = ({ children }: AuthLayoutProps) => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
       console.log('Auth state changed:', _event, session?.user?.email);
       
-      if (session?.user) {
+      if (session?.user && mounted) {
         setUser(session.user);
         const { data: profile } = await supabase
           .from('profiles')
@@ -55,32 +63,43 @@ export const AuthLayout = ({ children }: AuthLayoutProps) => {
           .eq('id', session.user.id)
           .single();
         
-        setUserRole(profile?.role);
-      } else {
+        if (mounted) {
+          setUserRole(profile?.role);
+        }
+      } else if (mounted) {
         setUser(null);
         setUserRole(null);
-        if (location.pathname !== '/login' && location.pathname !== '/register') {
+        if (location.pathname !== '/login' && location.pathname !== '/register' && 
+            location.pathname !== '/' && location.pathname !== '/about' && 
+            location.pathname !== '/contact' && location.pathname !== '/help') {
           navigate('/login');
         }
       }
-      setLoading(false);
+      if (mounted) {
+        setLoading(false);
+        setAuthChecked(true);
+      }
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
   }, [navigate, location.pathname]);
 
-  // Only show loading spinner on protected routes and when actually loading auth state
+  // Only show loading spinner on protected routes and when auth hasn't been checked yet
   const isProtectedRoute = !['/login', '/register', '/', '/about', '/contact', '/help'].includes(location.pathname);
-  if (loading && isProtectedRoute && !user) {
+  
+  if (!authChecked && isProtectedRoute) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        <Spinner />
       </div>
     );
   }
 
-  // If we're on a protected route and have no user after loading, redirect to login
-  if (!loading && !user && isProtectedRoute) {
+  // If we're on a protected route and have no user after auth check, redirect to login
+  if (authChecked && !user && isProtectedRoute) {
     navigate('/login');
     return null;
   }

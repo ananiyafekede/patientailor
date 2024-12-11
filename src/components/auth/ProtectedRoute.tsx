@@ -15,6 +15,8 @@ const ProtectedRoute = ({ children, allowedRoles = [] }: ProtectedRouteProps) =>
   const [hasAccess, setHasAccess] = useState(false);
 
   useEffect(() => {
+    let mounted = true;
+
     const checkAuth = async () => {
       try {
         const { data: { session }, error: sessionError } = await supabase.auth.getSession();
@@ -50,17 +52,25 @@ const ProtectedRoute = ({ children, allowedRoles = [] }: ProtectedRouteProps) =>
           }
         }
 
-        setHasAccess(true);
+        if (mounted) {
+          setHasAccess(true);
+        }
       } catch (error) {
         console.error('Auth check error:', error);
         toast.error('Authentication error occurred');
         navigate('/login');
       } finally {
-        setLoading(false);
+        if (mounted) {
+          setLoading(false);
+        }
       }
     };
 
     checkAuth();
+
+    return () => {
+      mounted = false;
+    };
   }, [navigate, allowedRoles]);
 
   if (loading) {
