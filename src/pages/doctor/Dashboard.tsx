@@ -33,8 +33,6 @@ const DoctorDashboard = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('No user found');
       
-      console.log('Current user:', user);
-      
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
@@ -46,9 +44,9 @@ const DoctorDashboard = () => {
         throw error;
       }
       
-      console.log('Profile data:', data);
       return data;
-    }
+    },
+    retry: false
   });
 
   // Fetch doctor details
@@ -70,37 +68,42 @@ const DoctorDashboard = () => {
         throw error;
       }
       
-      console.log('Doctor details:', data);
       return data;
-    }
+    },
+    retry: false
   });
 
   // Fetch metrics data
   useEffect(() => {
     const fetchMetrics = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
 
-      // Get today's appointments count
-      const { data: todayAppts, error: todayError } = await supabase
-        .from('appointments')
-        .select('*')
-        .eq('doctor_id', user.id)
-        .eq('appointment_date', new Date().toISOString().split('T')[0]);
+        // Get today's appointments count
+        const { data: todayAppts, error: todayError } = await supabase
+          .from('appointments')
+          .select('*')
+          .eq('doctor_id', user.id)
+          .eq('appointment_date', new Date().toISOString().split('T')[0]);
 
-      if (!todayError && todayAppts) {
-        setTodayAppointments(todayAppts.length);
-        setCompletedToday(todayAppts.filter(apt => apt.is_completed).length);
-      }
+        if (!todayError && todayAppts) {
+          setTodayAppointments(todayAppts.length);
+          setCompletedToday(todayAppts.filter(apt => apt.is_completed).length);
+        }
 
-      // Get total unique patients
-      const { count: patientsCount, error: patientsError } = await supabase
-        .from('appointments')
-        .select('patient_id', { count: 'exact', head: true })
-        .eq('doctor_id', user.id);
+        // Get total unique patients
+        const { count: patientsCount, error: patientsError } = await supabase
+          .from('appointments')
+          .select('patient_id', { count: 'exact', head: true })
+          .eq('doctor_id', user.id);
 
-      if (!patientsError) {
-        setTotalPatients(patientsCount || 0);
+        if (!patientsError) {
+          setTotalPatients(patientsCount || 0);
+        }
+      } catch (error) {
+        console.error('Error fetching metrics:', error);
+        toast.error('Failed to load metrics');
       }
     };
 
@@ -119,7 +122,9 @@ const DoctorDashboard = () => {
     }
   }, [profileError, detailsError]);
 
-  if (profileLoading || detailsLoading) {
+  const isLoading = profileLoading || detailsLoading;
+
+  if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <Spinner />

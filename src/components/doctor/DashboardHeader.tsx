@@ -1,13 +1,32 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface DashboardHeaderProps {
-  firstName: string;
-  lastName: string;
-  specialty: string;
+  firstName?: string;
+  lastName?: string;
+  specialty?: string;
   appointmentsToday: number;
 }
 
 export const DashboardHeader = ({ firstName, lastName, specialty, appointmentsToday }: DashboardHeaderProps) => {
+  if (!firstName || !lastName) {
+    return (
+      <div className="flex justify-between items-center bg-white rounded-lg p-6 shadow-sm">
+        <div className="flex-1">
+          <Skeleton className="h-8 w-64" />
+          <Skeleton className="h-4 w-48 mt-2" />
+        </div>
+        <div className="flex items-center gap-4">
+          <Skeleton className="h-16 w-16 rounded-full" />
+          <div>
+            <Skeleton className="h-5 w-32" />
+            <Skeleton className="h-4 w-24 mt-1" />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="flex justify-between items-center bg-white rounded-lg p-6 shadow-sm">
       <div className="flex-1">
@@ -30,7 +49,7 @@ export const DashboardHeader = ({ firstName, lastName, specialty, appointmentsTo
         </Avatar>
         <div>
           <p className="font-semibold text-gray-900">Dr. {firstName} {lastName}</p>
-          <p className="text-sm text-gray-600">{specialty}</p>
+          <p className="text-sm text-gray-600">{specialty || 'General Practice'}</p>
         </div>
       </div>
     </div>
