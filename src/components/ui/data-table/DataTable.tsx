@@ -72,10 +72,10 @@ export const DataTable = ({
 
   const sortedData = [...data].sort((a, b) => {
     if (!sortConfig) return 0;
-    
+
     const aValue = a[sortConfig.key];
     const bValue = b[sortConfig.key];
-    
+
     if (aValue < bValue) return sortConfig.direction === "asc" ? -1 : 1;
     if (aValue > bValue) return sortConfig.direction === "asc" ? 1 : -1;
     return 0;
@@ -93,7 +93,10 @@ export const DataTable = ({
     <div className="w-full space-y-4 bg-white/50 backdrop-blur rounded-lg border p-4">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         {title && (
-          <h2 className="text-xl font-semibold tracking-tight">{title}</h2>
+          // <h2 className="text-xl font-semibold tracking-tight">{title}</h2>
+          <h1 className="text-2xl md:text-3xl font-bold tracking-tight">
+            {title}
+          </h1>
         )}
         {searchable && (
           <div className="w-full md:w-auto">
@@ -114,7 +117,9 @@ export const DataTable = ({
               {columns.map((column) => (
                 <TableHead
                   key={column.key}
-                  className={column.sortable ? "cursor-pointer select-none" : ""}
+                  className={
+                    column.sortable ? "cursor-pointer select-none" : ""
+                  }
                   onClick={() => column.sortable && handleSort(column.key)}
                 >
                   <div className="flex items-center gap-2">
@@ -158,10 +163,7 @@ export const DataTable = ({
                     <TableCell>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            className="h-8 w-8 p-0"
-                          >
+                          <Button variant="ghost" className="h-8 w-8 p-0">
                             <MoreVertical className="h-4 w-4" />
                           </Button>
                         </DropdownMenuTrigger>

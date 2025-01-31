@@ -1,11 +1,11 @@
 import { useNavigate, useLocation } from "react-router-dom";
-import { 
-  LayoutDashboard, 
-  Users, 
-  Calendar, 
+import {
+  LayoutDashboard,
+  Users,
+  Calendar,
   Settings,
   Database,
-  Bell
+  Bell,
 } from "lucide-react";
 import {
   Sidebar,
@@ -22,33 +22,33 @@ const menuItems = [
   {
     title: "Overview",
     icon: LayoutDashboard,
-    url: "/admin/dashboard"
+    url: "/admin/dashboard",
   },
   {
     title: "Users",
     icon: Users,
-    url: "/admin/users"
+    url: "/admin/users",
   },
   {
     title: "Appointments",
     icon: Calendar,
-    url: "/admin/appointments"
+    url: "/admin/appointments",
   },
   {
     title: "Database",
     icon: Database,
-    url: "/admin/database"
+    url: "/admin/database",
   },
   {
     title: "Notifications",
     icon: Bell,
-    url: "/admin/notifications"
+    url: "/admin/notifications",
   },
   {
     title: "Settings",
     icon: Settings,
-    url: "/admin/settings"
-  }
+    url: "/admin/settings",
+  },
 ];
 
 export function AdminSidebar() {
@@ -63,9 +63,6 @@ export function AdminSidebar() {
   return (
     <Sidebar>
       <SidebarContent>
-        <div className="p-4">
-          <h2 className="text-xl font-bold text-primary">Hospital Admin</h2>
-        </div>
         <SidebarGroup>
           <SidebarGroupLabel>Main Menu</SidebarGroupLabel>
           <SidebarGroupContent>

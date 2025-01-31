@@ -1,0 +1,124 @@
+{
+  "users": [
+    {
+      "id": "1",
+      "username": "john_doe",
+      "password_hash": "hashed_password",
+      "role": "patient",
+      "email": "john@example.com",
+      "phone_number": "1234567890",
+      "created_at": "2023-01-01T00:00:00.000Z",
+      "updated_at": "2023-01-01T00:00:00.000Z"
+    },
+    {
+      "id": "2",
+      "username": "dr_smith",
+      "password_hash": "hashed_password",
+      "role": "doctor",
+      "email": "smith@example.com",
+      "phone_number": null,
+      "created_at": "2023-01-01T00:00:00.000Z",
+      "updated_at": "2023-01-01T00:00:00.000Z"
+    },
+    {
+      "id": "2",
+      "username": "dr_smith",
+      "password_hash": "hashed_password",
+      "role": "admin",
+      "email": "smithadmin@example.com",
+      "phone_number": null,
+      "created_at": "2023-01-01T00:00:00.000Z",
+      "updated_at": "2023-01-01T00:00:00.000Z"
+    }
+  ],
+  "patients": [
+    {
+      "user_id": 1,
+      "first_name": "John",
+      "last_name": "Doe",
+      "date_of_birth": "1990-05-15",
+      "address": "123 Main St, Anytown, USA",
+      "id": "40fe"
+    }
+  ],
+  "doctors": [
+    {
+      "user_id": 2,
+      "specialty": "Cardiology",
+      "qualification": "MD",
+      "experience_years": 10,
+      "id": "e811"
+    }
+  ],
+  "schedules": [
+    {
+      "id": "1",
+      "doctor_id": 2,
+      "schedule_date": "2023-02-01",
+      "start_time": "09:00:00",
+      "end_time": "17:00:00"
+    }
+  ],
+  "appointments": [
+    {
+      "id": "1",
+      "patient_id": 1,
+      "doctor_id": 2,
+      "schedule_id": 1,
+      "appointment_date": "2023-02-02",
+      "appointment_time": "10:00:00",
+      "status": "pending",
+      "notes": null
+    }
+  ],
+  "feedback": [
+    {
+      "id": "1",
+      "patient_id": 1,
+      "feedback_text": "Had a great experience!"
+    }
+  ],
+  "notifications": [
+    {
+      "id": "1",
+      "user_id": 1,
+      "message": "Your appointment is confirmed.",
+      "is_read": false
+    }
+  ],
+  "reports": [
+    {
+      "id": "1",
+      "report_type": "Appointment Summary",
+      "report_content": {
+        "notes": "Patient was advised to follow up."
+      },
+      "created_by": 2
+    }
+  ],
+  "billing": [
+    {
+      "id": "1",
+      "appointment_id": 1,
+      "payment_status": "pending",
+      "payment_method": "credit card",
+      "amount": 100
+    }
+  ],
+  "activity_logs": [
+    {
+      "id": "1",
+      "user_id": 2,
+      "activity_type": "Appointment Created",
+      "activity_details": "Created an appointment for John Doe."
+    }
+  ],
+  "backup_logs": [
+    {
+      "id": "1",
+      "backup_date": "2023-01-01T00:00:00.000Z",
+      "status": "success",
+      "details": "Backup created successfully."
+    }
+  ]
+}

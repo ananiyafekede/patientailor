@@ -1,81 +1,23 @@
-import { createContext, useContext, useEffect, useState } from 'react';
-import { User } from '@supabase/supabase-js';
-import { supabase } from '@/integrations/supabase/client';
-import toast from 'react-hot-toast';
+import { createContext, useContext, useState } from "react";
+import { User } from "@/types/index";
 
 interface AuthContextType {
   user: User | null;
-  loading: boolean;
-  userRole: string | null;
+  setUser: (user: User) => void;
 }
 
 const AuthContext = createContext<AuthContextType>({
   user: null,
-  loading: true,
-  userRole: null,
+  setUser(user) {},
 });
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-  const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [userRole, setUserRole] = useState<string | null>(null);
-
-  useEffect(() => {
-    // Get initial session
-    const initializeAuth = async () => {
-      try {
-        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-        
-        if (sessionError) {
-          console.error('Session error:', sessionError);
-          throw sessionError;
-        }
-
-        if (session?.user) {
-          setUser(session.user);
-          // For development, we'll use static role data
-          setUserRole('admin');
-        } else {
-          setUser(null);
-          setUserRole(null);
-        }
-      } catch (error) {
-        console.error('Auth initialization error:', error);
-        toast.error('Authentication error occurred');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    initializeAuth();
-
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log('Auth state changed:', event, session?.user?.email);
-      
-      if (event === 'SIGNED_OUT') {
-        setUser(null);
-        setUserRole(null);
-        setLoading(false);
-        return;
-      }
-
-      if (session?.user) {
-        setUser(session.user);
-        // For development, we'll use static role data
-        setUserRole('admin');
-      }
-      
-      setLoading(false);
-    });
-
-    return () => {
-      subscription.unsubscribe();
-    };
-  }, []);
+  const [user, setUser] = useState<User | null>(
+    JSON.parse(localStorage.getItem("user")) || null
+  );
 
   return (
-    <AuthContext.Provider value={{ user, loading, userRole }}>
+    <AuthContext.Provider value={{ user, setUser }}>
       {children}
     </AuthContext.Provider>
   );
@@ -84,7 +26,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
+    throw new Error("useAuth must be used within an AuthProvider");
   }
   return context;
 };

@@ -7,33 +7,36 @@ interface ProtectedRouteProps {
   allowedRoles?: string[];
 }
 
-const ProtectedRoute = ({ children, allowedRoles = [] }: ProtectedRouteProps) => {
-  const navigate = useNavigate();
-  const [loading, setLoading] = useState(true);
-  const [hasAccess, setHasAccess] = useState(false);
+const ProtectedRoute = ({
+  children,
+  allowedRoles = [],
+}: ProtectedRouteProps) => {
+  // const navigate = useNavigate();
+  // const [loading, setLoading] = useState(true);
+  // const [hasAccess, setHasAccess] = useState(false);
 
-  useEffect(() => {
-    // For development, we'll simulate a quick auth check that always succeeds
-    const checkAuth = async () => {
-      // Simulate an API call delay
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      setHasAccess(true);
-      setLoading(false);
-    };
+  // useEffect(() => {
+  //   // For development, we'll simulate a quick auth check that always succeeds
+  //   const checkAuth = async () => {
+  //     // Simulate an API call delay
+  //     await new Promise(resolve => setTimeout(resolve, 500));
 
-    checkAuth();
-  }, [navigate, allowedRoles]);
+  //     setHasAccess(true);
+  //     setLoading(false);
+  //   };
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <Spinner />
-      </div>
-    );
-  }
+  //   checkAuth();
+  // }, [navigate, allowedRoles]);
 
-  return hasAccess ? <>{children}</> : null;
+  // if (loading) {
+  //   return (
+  //     <div className="flex items-center justify-center min-h-screen">
+  //       <Spinner />
+  //     </div>
+  //   );
+  // }
+
+  return <>{children}</>;
 };
 
 export default ProtectedRoute;

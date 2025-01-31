@@ -1,8 +1,7 @@
 import { ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { supabase } from "@/integrations/supabase/client";
-import toast from "react-hot-toast";
+
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -13,6 +12,7 @@ import {
 import { User as UserIcon, ChevronDown, LogOut, Menu } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { AuthLayout } from "./AuthLayout";
+import useLogout from "@/hooks/auth/useLogout";
 
 interface MainLayoutProps {
   children: ReactNode;
@@ -20,29 +20,10 @@ interface MainLayoutProps {
 
 export const MainLayout = ({ children }: MainLayoutProps) => {
   const navigate = useNavigate();
-  const { user, userRole } = useAuth();
-
+  const { user } = useAuth();
+  const { isPending, logout } = useLogout();
   const handleLogout = async () => {
-    try {
-      // Clear any local storage items
-      localStorage.removeItem('user');
-      
-      // Sign out from Supabase
-      const { error } = await supabase.auth.signOut();
-      
-      if (error) {
-        throw error;
-      }
-
-      // Show success message
-      toast.success('Logged out successfully');
-      
-      // Navigate to login page
-      navigate("/login", { replace: true });
-    } catch (error) {
-      console.error('Logout error:', error);
-      toast.error('Error logging out');
-    }
+    logout();
   };
 
   return (
@@ -65,21 +46,36 @@ export const MainLayout = ({ children }: MainLayoutProps) => {
               Hospital App
             </Button>
             <nav className="hidden md:flex gap-6 ml-6">
-              <Button variant="ghost" onClick={() => navigate("/about")}>About</Button>
-              <Button variant="ghost" onClick={() => navigate("/contact")}>Contact</Button>
-              <Button variant="ghost" onClick={() => navigate("/help")}>Help</Button>
-              {user && userRole === 'admin' && (
-                <Button variant="ghost" onClick={() => navigate("/admin/dashboard")}>
+              <Button variant="ghost" onClick={() => navigate("/about")}>
+                About
+              </Button>
+              <Button variant="ghost" onClick={() => navigate("/contact")}>
+                Contact
+              </Button>
+              <Button variant="ghost" onClick={() => navigate("/help")}>
+                Help
+              </Button>
+              {user && user.role === "admin" && (
+                <Button
+                  variant="ghost"
+                  onClick={() => navigate("/admin/dashboard")}
+                >
                   Admin Dashboard
                 </Button>
               )}
-              {user && userRole === 'doctor' && (
-                <Button variant="ghost" onClick={() => navigate("/doctor/dashboard")}>
+              {user && user.role === "doctor" && (
+                <Button
+                  variant="ghost"
+                  onClick={() => navigate("/doctor/dashboard")}
+                >
                   Doctor Dashboard
                 </Button>
               )}
-              {user && userRole === 'patient' && (
-                <Button variant="ghost" onClick={() => navigate("/patient/dashboard")}>
+              {user && user.role === "patient" && (
+                <Button
+                  variant="ghost"
+                  onClick={() => navigate("/patient/dashboard")}
+                >
                   Patient Dashboard
                 </Button>
               )}
@@ -95,18 +91,24 @@ export const MainLayout = ({ children }: MainLayoutProps) => {
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
-                    {userRole === 'admin' && (
-                      <DropdownMenuItem onClick={() => navigate("/admin/dashboard")}>
+                    {user.role === "admin" && (
+                      <DropdownMenuItem
+                        onClick={() => navigate("/admin/dashboard")}
+                      >
                         Admin Dashboard
                       </DropdownMenuItem>
                     )}
-                    {userRole === 'doctor' && (
-                      <DropdownMenuItem onClick={() => navigate("/doctor/dashboard")}>
+                    {user.role === "doctor" && (
+                      <DropdownMenuItem
+                        onClick={() => navigate("/doctor/dashboard")}
+                      >
                         Doctor Dashboard
                       </DropdownMenuItem>
                     )}
-                    {userRole === 'patient' && (
-                      <DropdownMenuItem onClick={() => navigate("/patient/dashboard")}>
+                    {user.role === "patient" && (
+                      <DropdownMenuItem
+                        onClick={() => navigate("/patient/dashboard")}
+                      >
                         Patient Dashboard
                       </DropdownMenuItem>
                     )}

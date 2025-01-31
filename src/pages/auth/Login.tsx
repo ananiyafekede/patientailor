@@ -3,51 +3,33 @@ import { useNavigate } from "react-router-dom";
 import { Auth } from "@supabase/auth-ui-react";
 import { ThemeSupa } from "@supabase/auth-ui-shared";
 import { supabase } from "@/integrations/supabase/client";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Helmet } from "react-helmet-async";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import toast from "react-hot-toast";
+import { useForm } from "react-hook-form";
+import useLogin from "@/hooks/auth/useLogin";
+import { LoginRequest } from "@/types";
 
 const Login = () => {
   const navigate = useNavigate();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
 
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    // Static user data for development
-    const staticUsers = [
-      { email: 'admin@example.com', password: 'admin123', role: 'admin' },
-      { email: 'doctor@example.com', password: 'doctor123', role: 'doctor' },
-      { email: 'patient@example.com', password: 'patient123', role: 'patient' }
-    ];
-
-    const user = staticUsers.find(u => u.email === email && u.password === password);
-
-    if (user) {
-      toast.success('Successfully logged in!');
-      localStorage.setItem('user', JSON.stringify({ email: user.email, role: user.role }));
-      
-      // Redirect based on role
-      switch (user.role) {
-        case 'admin':
-          navigate('/admin/dashboard');
-          break;
-        case 'doctor':
-          navigate('/doctor/dashboard');
-          break;
-        case 'patient':
-          navigate('/patient/dashboard');
-          break;
-        default:
-          navigate('/');
-      }
-    } else {
-      toast.error('Invalid credentials');
-    }
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm();
+  const { login, isPending: isLoading } = useLogin();
+  const onSubmit = async (data: LoginRequest) => {
+    login(data);
   };
 
   return (
@@ -65,16 +47,14 @@ const Login = () => {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleLogin} className="space-y-4">
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
                 <Input
                   id="email"
                   type="email"
                   placeholder="Enter your email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
+                  {...register("email")}
                 />
               </div>
               <div className="space-y-2">
@@ -83,13 +63,11 @@ const Login = () => {
                   id="password"
                   type="password"
                   placeholder="Enter your password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
+                  {...register("password_hash")}
                 />
               </div>
               <Button className="w-full" type="submit">
-                Login
+                {isLoading ? "Loging..." : "Login"}
               </Button>
               <div className="text-center text-sm">
                 <Button
