@@ -1,6 +1,12 @@
 import { format } from "date-fns";
 import { Calendar, Clock } from "lucide-react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useQuery } from "@tanstack/react-query";
@@ -29,70 +35,18 @@ interface Appointment {
 }
 
 const AppointmentList = () => {
-  const { data: appointments, isLoading, error } = useQuery({
-    queryKey: ['appointments'],
-    queryFn: async () => {
-      // First get the current user
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('No user found');
-      
-      console.log('Current user ID:', user.id);
-      
-      // Get the profile to get the integer user_id from patients table
-      const { data: profileData, error: profileError } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', user.id)
-        .single();
-        
-      if (profileError) {
-        console.error('Error fetching profile:', profileError);
-        throw profileError;
-      }
-      
-      console.log('Profile data:', profileData);
-      
-      // Now get the patient record using the profile data
-      const { data: patientData, error: patientError } = await supabase
-        .from('patients')
-        .select('user_id')
-        .eq('user_id', profileData.id)
-        .single();
-        
-      if (patientError) {
-        console.error('Error fetching patient:', patientError);
-        throw patientError;
-      }
-      
-      console.log('Patient data:', patientData);
-      
-      // Now use the patient's user_id to get appointments with doctor details
-      const { data, error } = await supabase
-        .from('appointments')
-        .select(`
-          id,
-          appointment_date,
-          appointment_time,
-          status,
-          doctors:doctor_id (
-            specialty,
-            qualification
-          )
-        `)
-        .eq('patient_id', patientData.user_id)
-        .order('appointment_date', { ascending: true });
-        
-      if (error) {
-        console.error('Error fetching appointments:', error);
-        throw error;
-      }
-      
-      console.log('Appointments data:', data);
-      
-      // Ensure the data matches our Appointment type
-      return data as unknown as Appointment[];
-    }
-  });
+  //     // Now use the patient's user_id to get appointments with doctor details
+  //     const { data, error } = await supabase
+  //       .from('appointments')
+  //       .select(`
+  //         id,
+  //         appointment_date,
+  //         appointment_time,
+  //         status,
+  //         doctors:doctor_id (
+  //           specialty,
+  //           qualification
+  //         )
 
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
@@ -127,13 +81,17 @@ const AppointmentList = () => {
     <Card className="bg-white/50 backdrop-blur border-none shadow-lg">
       <CardHeader>
         <CardTitle>Your Appointments</CardTitle>
-        <CardDescription>View and manage your upcoming and past appointments</CardDescription>
+        <CardDescription>
+          View and manage your upcoming and past appointments
+        </CardDescription>
       </CardHeader>
       <CardContent>
         {!appointments || appointments.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-40">
             <p className="text-muted-foreground">No appointments found</p>
-            <Button variant="outline" className="mt-4">Book an Appointment</Button>
+            <Button variant="outline" className="mt-4">
+              Book an Appointment
+            </Button>
           </div>
         ) : (
           <div className="rounded-md border">
@@ -152,8 +110,12 @@ const AppointmentList = () => {
                   <TableRow key={appointment.id}>
                     <TableCell>
                       <div>
-                        <p className="font-medium">Dr. {appointment.doctors.specialty}</p>
-                        <p className="text-sm text-muted-foreground">{appointment.doctors.qualification}</p>
+                        <p className="font-medium">
+                          Dr. {appointment.doctors.specialty}
+                        </p>
+                        <p className="text-sm text-muted-foreground">
+                          {appointment.doctors.qualification}
+                        </p>
                       </div>
                     </TableCell>
                     <TableCell>
@@ -165,7 +127,12 @@ const AppointmentList = () => {
                     <TableCell>
                       <div className="flex items-center">
                         <Clock className="mr-2 h-4 w-4 text-muted-foreground" />
-                        {format(new Date(`2000-01-01T${appointment.appointment_time}`), "p")}
+                        {format(
+                          new Date(
+                            `2000-01-01T${appointment.appointment_time}`
+                          ),
+                          "p"
+                        )}
                       </div>
                     </TableCell>
                     <TableCell>

@@ -1,8 +1,4 @@
-import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Auth } from "@supabase/auth-ui-react";
-import { ThemeSupa } from "@supabase/auth-ui-shared";
-import { supabase } from "@/integrations/supabase/client";
 import {
   Card,
   CardContent,
@@ -14,14 +10,12 @@ import { Helmet } from "react-helmet-async";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import toast from "react-hot-toast";
 import { useForm } from "react-hook-form";
-import useLogin from "@/hooks/auth/useLogin";
+import useLogin from "@/featurs/auth/useLogin";
 import { LoginRequest } from "@/types";
 
 const Login = () => {
   const navigate = useNavigate();
-
   const {
     register,
     handleSubmit,

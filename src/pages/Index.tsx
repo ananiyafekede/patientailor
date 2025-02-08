@@ -9,9 +9,11 @@ const Index = () => {
     <>
       <Helmet>
         <title>Welcome to Hospital Management System</title>
-        <meta name="description" content="Modern hospital management system for efficient healthcare delivery" />
+        <meta
+          name="description"
+          content="Modern hospital management system for efficient healthcare delivery"
+        />
       </Helmet>
-
       <div className="min-h-screen">
         <HeroSection />
         <Services />

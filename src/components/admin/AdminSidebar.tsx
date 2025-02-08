@@ -6,6 +6,7 @@ import {
   Settings,
   Database,
   Bell,
+  Home,
 } from "lucide-react";
 import {
   Sidebar,
@@ -19,6 +20,11 @@ import {
 } from "@/components/ui/sidebar";
 
 const menuItems = [
+  {
+    title: "Home",
+    icon: Home,
+    url: "/",
+  },
   {
     title: "Overview",
     icon: LayoutDashboard,

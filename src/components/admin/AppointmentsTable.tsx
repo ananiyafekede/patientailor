@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Spinner } from "@/components/ui/spinner";
 import toast from "react-hot-toast";
 import { format } from "date-fns";
-import useGetAppointments from "@/hooks/appointments/useGetAppointments";
+import useGetAppointments from "@/featurs/appointments/useGetAppointments";
 
 const AppointmentsTable = () => {
   const columns = [

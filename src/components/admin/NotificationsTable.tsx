@@ -2,7 +2,7 @@ import { Edit2, Eye, Trash2 } from "lucide-react";
 import { DataTable } from "@/components/ui/data-table/DataTable";
 import { Spinner } from "@/components/ui/spinner";
 import toast from "react-hot-toast";
-import useGetNotifications from "@/hooks/notifications/useGetNotifications";
+import useGetNotifications from "@/features/notifications/useGetNotifications";
 import { Notification } from "@/types";
 
 const NotificationsTable = () => {

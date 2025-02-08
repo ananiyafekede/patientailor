@@ -2,7 +2,7 @@ import { Edit2, Eye, Trash2 } from "lucide-react";
 import { DataTable } from "@/components/ui/data-table/DataTable";
 import { Spinner } from "@/components/ui/spinner";
 import toast from "react-hot-toast";
-import useGetUsers from "@/hooks/users/useGetUsers";
+import useGetUsers from "@/features/users/useGetUsers";
 import { User } from "@/types";
 
 const UsersTable = () => {

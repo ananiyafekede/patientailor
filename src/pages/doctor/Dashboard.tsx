@@ -6,7 +6,7 @@ import { MetricsCards } from "@/components/doctor/MetricsCards";
 import { AnalyticsSection } from "@/components/doctor/AnalyticsSection";
 import { useAuth } from "@/contexts/AuthContext";
 import { useState } from "react";
-import useGetDetail from "@/hooks/doctor/useGetDetail";
+import useGetDetail from "@/featurs/doctor/useGetDetail";
 
 const revenueData = [
   { name: "Mon", income: 3200, expense: 1700 },

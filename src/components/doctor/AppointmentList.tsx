@@ -2,7 +2,13 @@ import { format } from "date-fns";
 import { Calendar, Clock, User } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Spinner } from "@/components/ui/spinner";
@@ -14,6 +20,9 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { useAuth } from "@/contexts/AuthContext";
+import useGetAppointments from "@/featurs/appointments/useGetAppointments";
+import useGetDoctorAppointment from "@/featurs/doctor/useGetDoctorAppointment";
 
 interface Patient {
   first_name: string;
@@ -30,54 +39,9 @@ interface Appointment {
 }
 
 const AppointmentList = () => {
-  const { data: appointments, isLoading, error } = useQuery({
-    queryKey: ['doctor-appointments'],
-    queryFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('No user found');
-      
-      console.log('Current user ID:', user.id);
-      
-      // Get the doctor record using the profile data
-      const { data: doctorData, error: doctorError } = await supabase
-        .from('doctors')
-        .select('user_id')
-        .eq('user_id', user.id)
-        .single();
-        
-      if (doctorError) {
-        console.error('Error fetching doctor:', doctorError);
-        throw doctorError;
-      }
-      
-      console.log('Doctor data:', doctorData);
-      
-      // Now get appointments with patient details
-      const { data, error } = await supabase
-        .from('appointments')
-        .select(`
-          id,
-          appointment_date,
-          appointment_time,
-          status,
-          medical_notes,
-          patients:patient_id (
-            first_name,
-            last_name
-          )
-        `)
-        .eq('doctor_id', doctorData.user_id)
-        .order('appointment_date', { ascending: true });
-        
-      if (error) {
-        console.error('Error fetching appointments:', error);
-        throw error;
-      }
-      
-      console.log('Appointments data:', data);
-      return data as unknown as Appointment[];
-    }
-  });
+  const { user } = useAuth();
+  const { isLoading, doctorAppointments: appointments } =
+    useGetDoctorAppointment(String(user.id));
 
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
@@ -96,23 +60,25 @@ const AppointmentList = () => {
     return <Spinner />;
   }
 
-  if (error) {
-    return (
-      <Card className="bg-white/50 backdrop-blur border-none shadow-lg">
-        <CardContent className="pt-6">
-          <div className="text-center text-red-500">
-            Error loading appointments. Please try again later.
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
+  // if (error) {
+  //   return (
+  //     <Card className="bg-white/50 backdrop-blur border-none shadow-lg">
+  //       <CardContent className="pt-6">
+  //         <div className="text-center text-red-500">
+  //           Error loading appointments. Please try again later.
+  //         </div>
+  //       </CardContent>
+  //     </Card>
+  //   );
+  // }
 
   return (
     <Card className="bg-white/50 backdrop-blur border-none shadow-lg">
       <CardHeader>
         <CardTitle>Your Appointments</CardTitle>
-        <CardDescription>View and manage your patient appointments</CardDescription>
+        <CardDescription>
+          View and manage your patient appointments
+        </CardDescription>
       </CardHeader>
       <CardContent>
         {!appointments || appointments.length === 0 ? (
@@ -138,7 +104,7 @@ const AppointmentList = () => {
                       <div className="flex items-center">
                         <User className="mr-2 h-4 w-4 text-muted-foreground" />
                         <span>
-                          {appointment.patients.first_name} {appointment.patients.last_name}
+                          {appointment.first_name} {appointment.last_name}
                         </span>
                       </div>
                     </TableCell>
@@ -151,7 +117,12 @@ const AppointmentList = () => {
                     <TableCell>
                       <div className="flex items-center">
                         <Clock className="mr-2 h-4 w-4 text-muted-foreground" />
-                        {format(new Date(`2000-01-01T${appointment.appointment_time}`), "p")}
+                        {format(
+                          new Date(
+                            `2000-01-01T${appointment.appointment_time}`
+                          ),
+                          "p"
+                        )}
                       </div>
                     </TableCell>
                     <TableCell>
