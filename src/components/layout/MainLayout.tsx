@@ -1,7 +1,7 @@
+
 import { ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -12,7 +12,7 @@ import {
 import { User as UserIcon, ChevronDown, LogOut, Menu } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { AuthLayout } from "./AuthLayout";
-import useLogout from "@/featurs/auth/useLogout";
+import useLogout from "@/features/auth/useLogout";
 
 interface MainLayoutProps {
   children: ReactNode;
