@@ -11,8 +11,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useForm } from "react-hook-form";
-import useLogin from "@/featurs/auth/useLogin";
-import { LoginRequest } from "@/types";
+import { useLogin } from "@/hooks/auth";
+import { LoginProps } from "@/types";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -22,7 +22,7 @@ const Login = () => {
     formState: { errors },
   } = useForm();
   const { login, isPending: isLoading } = useLogin();
-  const onSubmit = async (data: LoginRequest) => {
+  const onSubmit = async (data: LoginProps) => {
     login(data);
   };
 

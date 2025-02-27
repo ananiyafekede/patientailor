@@ -9,8 +9,6 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
 import { Spinner } from "@/components/ui/spinner";
 import {
   Table,
@@ -20,6 +18,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import useGetAppointments from "@/features/appointments/useGetAppointments";
 
 interface Doctor {
   specialty: string;
@@ -35,19 +34,7 @@ interface Appointment {
 }
 
 const AppointmentList = () => {
-  //     // Now use the patient's user_id to get appointments with doctor details
-  //     const { data, error } = await supabase
-  //       .from('appointments')
-  //       .select(`
-  //         id,
-  //         appointment_date,
-  //         appointment_time,
-  //         status,
-  //         doctors:doctor_id (
-  //           specialty,
-  //           qualification
-  //         )
-
+  const { isLoading, error, appointments } = useGetAppointments();
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
       case "completed":

@@ -87,7 +87,7 @@ export interface BackupLog {
 
 // REQ TYPE
 
-export interface LoginRequest {
+export interface LoginProps {
   email: string;
   password_hash: string;
 }

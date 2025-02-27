@@ -12,7 +12,7 @@ import {
 import { User as UserIcon, ChevronDown, LogOut, Menu } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { AuthLayout } from "./AuthLayout";
-import useLogout from "@/featurs/auth/useLogout";
+import { useLogout } from "@/hooks/auth";
 
 interface MainLayoutProps {
   children: ReactNode;
