@@ -1,5 +1,5 @@
+
 import { useEffect, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { Calendar } from "@/components/ui/calendar";
 import {
@@ -17,25 +17,13 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { supabase } from "@/integrations/supabase/client";
-import toast from "react-hot-toast";
 import { useGetDoctors } from "@/hooks/doctor";
 import { useGetScheduleForDoctor } from "@/hooks/schedule";
 import { useBookAppointment } from "@/hooks/patient";
 
-interface Doctor {
-  user_id: number;
-  specialty: string;
-  qualification: string;
-  experience_years: number;
-}
-
 const BookAppointment = () => {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
-  const [selectedSchedule, setSelectedSchedule] = useState<string | undefined>(
-    undefined
-  );
-  const [selectedTime, setSelectedTime] = useState<string>("");
+  const [selectedScheduleId, setSelectedScheduleId] = useState<string>("");
   const [selectedDoctor, setSelectedDoctor] = useState<string>("");
 
   const {
@@ -60,20 +48,26 @@ const BookAppointment = () => {
   }, [selectedDoctor, selectedDate, refetchSchedules]);
 
   const handleBookAppointment = async () => {
+    if (!selectedScheduleId || !selectedDoctor) return;
+    
+    // Find the selected schedule from the schedules array
+    const selectedSchedule = schedules.find(schedule => schedule.id.toString() === selectedScheduleId);
+    
+    if (!selectedSchedule) return;
+    
     bookAppointment({
       doctor_id: selectedDoctor,
-      schedule_id: schedules[0].id,
-      appointment_date: schedules[0].schedule_date,
-      appointment_time: schedules[0].start_time,
+      schedule_id: parseInt(selectedScheduleId),
+      appointment_date: selectedSchedule.schedule_date,
+      appointment_time: selectedSchedule.start_time,
       notes: "Follow-up appointment for patient evaluation.",
     });
   };
 
-  function handleTimeChange(e) {
-    console.log("==================Schedule==================");
-    console.log(e);
-    console.log("====================================");
+  function handleTimeChange(scheduleId: string) {
+    setSelectedScheduleId(scheduleId);
   }
+  
   if (doctorsLoading) {
     return <div>Loading doctors...</div>;
   }
@@ -137,7 +131,7 @@ const BookAppointment = () => {
             <CardContent>
               <Select
                 onValueChange={handleTimeChange}
-                value={selectedTime}
+                value={selectedScheduleId}
                 disabled={slotsLoading || !schedules?.length}
               >
                 <SelectTrigger>
@@ -145,7 +139,7 @@ const BookAppointment = () => {
                 </SelectTrigger>
                 <SelectContent>
                   {schedules?.map((slot) => (
-                    <SelectItem key={slot.id} value={slot.start_time}>
+                    <SelectItem key={slot.id} value={slot.id.toString()}>
                       {format(new Date(`2000-01-01T${slot.start_time}`), "p")}
                     </SelectItem>
                   ))}
@@ -155,7 +149,7 @@ const BookAppointment = () => {
               <Button
                 className="w-full mt-4"
                 onClick={handleBookAppointment}
-                disabled={!selectedTime || isPending}
+                disabled={!selectedScheduleId || isPending}
               >
                 Book Appointment
               </Button>

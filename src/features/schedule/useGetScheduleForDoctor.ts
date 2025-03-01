@@ -1,3 +1,4 @@
+
 import { getScheduleForDoctor } from "@/api/schedule";
 import { useQuery } from "@tanstack/react-query";
 
@@ -6,13 +7,14 @@ function useGetScheduleForDoctor(
   selectedDate: Date | undefined
 ) {
   const { isLoading, data, error, refetch } = useQuery({
-    queryKey: ["available-slots", doctorId],
+    queryKey: ["available-slots", doctorId, selectedDate],
     queryFn: () => getScheduleForDoctor(doctorId),
+    enabled: !!doctorId && !!selectedDate,
   });
 
   return {
     isLoading,
-    schedules: data?.schedules,
+    schedules: data?.schedules || [],
     pagination: data?.pagination,
     error,
     refetch,

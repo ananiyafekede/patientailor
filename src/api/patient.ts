@@ -1,3 +1,4 @@
+
 import { Appointment, Pagination } from "@/types";
 import axios, { AxiosError } from "axios";
 
@@ -29,15 +30,19 @@ export async function getPatientAppointments(): Promise<{
 }> {
   try {
     const res = await api.get("/patients/appointments");
-    console.log("====================================");
-    console.log(res.data.data);
-    console.log("====================================");
     return res.data.data;
   } catch (error) {
     return handleError(error);
   }
 }
-export async function bookPatientAppointments(data) {
+
+export async function bookPatientAppointments(data: {
+  doctor_id: string;
+  schedule_id: number;
+  appointment_date: string;
+  appointment_time: string;
+  notes: string;
+}) {
   try {
     const res = await api.post("/patients/appointments/book", data);
     return res.data;
