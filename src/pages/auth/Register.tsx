@@ -1,64 +1,39 @@
-import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Helmet } from 'react-helmet-async';
-import toast from 'react-hot-toast';
+import { Helmet } from "react-helmet-async";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { supabase } from "@/integrations/supabase/client";
+import { useRegister } from "@/hooks/auth";
+import { useForm } from "react-hook-form";
+import { RegisterProps } from "@/types";
 
 const Register = () => {
   const navigate = useNavigate();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [loading, setLoading] = useState(false);
-
-  const handleRegister = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-
-    if (password !== confirmPassword) {
-      toast.error("Passwords do not match");
-      setLoading(false);
-      return;
-    }
-
-    try {
-      const { data, error } = await supabase.auth.signUp({
-        email: email.trim(),
-        password,
-      });
-
-      if (error) {
-        if (error.message === "User already registered") {
-          toast.error("This email is already registered. Please try logging in instead.");
-          console.error("Registration error: User already exists");
-        } else {
-          toast.error(error.message || "An error occurred during registration");
-          console.error("Registration error:", error);
-        }
-        return;
-      }
-
-      if (data.user) {
-        toast.success("Registration successful! Please check your email for verification.");
-        navigate("/login");
-      }
-    } catch (error: any) {
-      toast.error(error.message || "An error occurred during registration");
-      console.error("Registration error:", error);
-    } finally {
-      setLoading(false);
-    }
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm();
+  const { isPending, signup } = useRegister();
+  const handleRegister = (data: RegisterProps) => {
+    signup(data);
   };
 
   return (
     <>
       <Helmet>
         <title>Register - Hospital Appointment System</title>
-        <meta name="description" content="Create an account to start managing your hospital appointments and healthcare journey." />
+        <meta
+          name="description"
+          content="Create an account to start managing your hospital appointments and healthcare journey."
+        />
       </Helmet>
 
       <div className="flex items-center justify-center min-h-[calc(100vh-5rem)]">
@@ -68,16 +43,25 @@ const Register = () => {
             <CardDescription>Enter your details to register</CardDescription>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleRegister} className="space-y-4">
+            <form onSubmit={handleSubmit(handleRegister)} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
                 <Input
                   id="email"
                   type="email"
                   placeholder="Enter your email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
+                  {...register("email", { required: "email is required" })}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="username">User Name</Label>
+                <Input
+                  id="username"
+                  type="text"
+                  placeholder="Enter your username"
+                  {...register("username", {
+                    required: "username is required",
+                  })}
                 />
               </div>
               <div className="space-y-2">
@@ -86,9 +70,9 @@ const Register = () => {
                   id="password"
                   type="password"
                   placeholder="Create a password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
+                  {...register("password_hash", {
+                    required: "Password is required",
+                  })}
                 />
               </div>
               <div className="space-y-2">
@@ -97,13 +81,13 @@ const Register = () => {
                   id="confirmPassword"
                   type="password"
                   placeholder="Confirm your password"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  required
+                  {...register("password_hash_confirm", {
+                    required: "Password is required",
+                  })}
                 />
               </div>
-              <Button className="w-full" type="submit" disabled={loading}>
-                {loading ? "Creating account..." : "Register"}
+              <Button className="w-full" type="submit" disabled={isPending}>
+                {isPending ? "Creating account..." : "Register"}
               </Button>
               <div className="text-center text-sm">
                 <Button

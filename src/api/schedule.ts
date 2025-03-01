@@ -1,4 +1,4 @@
-import { Appointment, Doctor, Pagination } from "@/types";
+import { Appointment, Doctor, Pagination, Schedule } from "@/types";
 import axios, { AxiosError } from "axios";
 
 const BASE_URL = import.meta.env.VITE_BACKEND_URL;
@@ -23,26 +23,12 @@ const api = axios.create({
   withCredentials: true,
 });
 
-export async function getDoctorAppointments(): Promise<{
-  appointments: Appointment[];
+export async function getScheduleForDoctor(doctorId: string | number): Promise<{
+  schedules: Schedule[];
   pagination: Pagination;
 }> {
   try {
-    const res = await api.get("/doctor/appointments");
-    return res.data.data;
-  } catch (error) {
-    return handleError(error);
-  }
-}
-
-export async function getDoctors(): Promise<{
-  doctors: Doctor[];
-  pagination: Pagination;
-}> {
-  try {
-    const res = await api.get("/doctors");
-    console.log(res.data);
-
+    const res = await api.get(`/doctors/${doctorId}/schedule`);
     return res.data.data;
   } catch (error) {
     return handleError(error);

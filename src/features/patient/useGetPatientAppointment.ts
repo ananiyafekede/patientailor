@@ -1,10 +1,10 @@
-import { getAppointments } from "@/api/appointments";
+import { getPatientAppointments } from "@/api/patient";
 import { useQuery } from "@tanstack/react-query";
 
-function useGetAppointments() {
+function useGetPatientAppointments() {
   const { isLoading, data, error } = useQuery({
-    queryKey: ["appointments"],
-    queryFn: getAppointments,
+    queryKey: ["patient-appointments"],
+    queryFn: getPatientAppointments,
   });
 
   return {
@@ -15,4 +15,4 @@ function useGetAppointments() {
   };
 }
 
-export default useGetAppointments;
+export default useGetPatientAppointments;

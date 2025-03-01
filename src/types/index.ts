@@ -4,6 +4,7 @@ export interface User {
   password_hash: string;
   role: "admin" | "doctor" | "patient";
   email: string;
+  avatar: string | undefined;
   phone_number?: string | null;
   created_at: string;
   updated_at: string;
@@ -22,6 +23,10 @@ export interface Doctor {
   specialty?: string | null;
   qualification?: string | null;
   experience_years?: number | null;
+  first_name: string;
+  last_name: string;
+  date_of_birth?: string | null;
+  address?: string | null;
 }
 
 export interface Schedule {
@@ -34,8 +39,8 @@ export interface Schedule {
 
 export interface Appointment {
   id: number;
-  patient_id: number;
-  doctor_id: number;
+  patient: Patient;
+  Doctor: Doctor;
   schedule_id?: number | null;
   appointment_date: string;
   appointment_time: string;
@@ -90,4 +95,21 @@ export interface BackupLog {
 export interface LoginProps {
   email: string;
   password_hash: string;
+}
+
+export interface RegisterProps {
+  id?: number;
+  username: string;
+  password_hash: string;
+  password_hash_confirm: string | undefined;
+  role: "admin" | "doctor" | "patient";
+  email: string;
+  avatar: string | undefined;
+  phone_number?: string;
+}
+export interface Pagination {
+  total: number;
+  limit: number;
+  page: number;
+  totalPages: number;
 }

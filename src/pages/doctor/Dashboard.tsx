@@ -6,7 +6,6 @@ import { MetricsCards } from "@/components/doctor/MetricsCards";
 import { AnalyticsSection } from "@/components/doctor/AnalyticsSection";
 import { useAuth } from "@/contexts/AuthContext";
 import { useState } from "react";
-import useGetDetail from "@/featurs/doctor/useGetDetail";
 
 const revenueData = [
   { name: "Mon", income: 3200, expense: 1700 },
@@ -23,15 +22,14 @@ const DoctorDashboard = () => {
   const [totalPatients, setTotalPatients] = useState(0);
   const [completedToday, setCompletedToday] = useState(0);
   const { user: doctorProfile } = useAuth();
-  const { isLoading, doctorDetail } = useGetDetail(String(doctorProfile.id));
 
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <Spinner />
-      </div>
-    );
-  }
+  // if (isLoading) {
+  //   return (
+  //     <div className="flex items-center justify-center min-h-screen">
+  //       <Spinner />
+  //     </div>
+  //   );
+  // }
 
   return (
     <>
@@ -41,8 +39,8 @@ const DoctorDashboard = () => {
 
       <div className="container mx-auto p-6 space-y-6 bg-gray-50 min-h-screen">
         <DashboardHeader
-          username={doctorProfile?.username}
-          specialty={doctorDetail.specialty}
+          username={doctorProfile.username}
+          // specialty={doctorDetail?.specialty}
           appointmentsToday={todayAppointments}
         />
 

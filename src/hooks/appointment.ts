@@ -1,1 +1,3 @@
-import useGetAppointments from "@/featurs/appointments/useGetAppointments";
+import useGetAppointments from "@/features/appointments/useGetAppointments";
+
+export { useGetAppointments };

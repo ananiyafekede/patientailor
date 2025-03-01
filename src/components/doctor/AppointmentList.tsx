@@ -1,7 +1,5 @@
 import { format } from "date-fns";
 import { Calendar, Clock, User } from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
 import {
   Card,
   CardContent,
@@ -21,27 +19,20 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useAuth } from "@/contexts/AuthContext";
-import useGetAppointments from "@/featurs/appointments/useGetAppointments";
-import useGetDoctorAppointment from "@/featurs/doctor/useGetDoctorAppointment";
+import { useGetDoctorAppointment } from "@/hooks/doctor";
 
 interface Patient {
   first_name: string;
   last_name: string;
 }
 
-interface Appointment {
-  id: number;
-  appointment_date: string;
-  appointment_time: string;
-  status: string;
-  patients: Patient;
-  medical_notes: string | null;
-}
-
 const AppointmentList = () => {
   const { user } = useAuth();
-  const { isLoading, doctorAppointments: appointments } =
-    useGetDoctorAppointment(String(user.id));
+  const {
+    isLoading,
+    doctorAppointments: appointments,
+    error,
+  } = useGetDoctorAppointment();
 
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
@@ -60,17 +51,17 @@ const AppointmentList = () => {
     return <Spinner />;
   }
 
-  // if (error) {
-  //   return (
-  //     <Card className="bg-white/50 backdrop-blur border-none shadow-lg">
-  //       <CardContent className="pt-6">
-  //         <div className="text-center text-red-500">
-  //           Error loading appointments. Please try again later.
-  //         </div>
-  //       </CardContent>
-  //     </Card>
-  //   );
-  // }
+  if (error) {
+    return (
+      <Card className="bg-white/50 backdrop-blur border-none shadow-lg">
+        <CardContent className="pt-6">
+          <div className="text-center text-red-500">
+            Error loading appointments. Please try again later.
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card className="bg-white/50 backdrop-blur border-none shadow-lg">
@@ -104,7 +95,7 @@ const AppointmentList = () => {
                       <div className="flex items-center">
                         <User className="mr-2 h-4 w-4 text-muted-foreground" />
                         <span>
-                          {appointment.first_name} {appointment.last_name}
+                          {/* {appointment.first_name} {appointment.last_name} */}
                         </span>
                       </div>
                     </TableCell>

@@ -1,4 +1,4 @@
-import { LoginProps, User } from "@/types";
+import { LoginProps, RegisterProps, User } from "@/types";
 import axios, { AxiosError } from "axios";
 
 const BASE_URL = import.meta.env.VITE_BACKEND_URL;
@@ -26,6 +26,16 @@ const api = axios.create({
 export async function login(data: LoginProps): Promise<User> {
   try {
     const res = await api.post("/auth/login", data);
+
+    return res.data.data.user;
+  } catch (error) {
+    return handleError(error);
+  }
+}
+
+export async function register(data: RegisterProps): Promise<User> {
+  try {
+    const res = await api.post("/auth/register", data);
 
     return res.data.data.user;
   } catch (error) {

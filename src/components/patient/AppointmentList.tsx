@@ -19,6 +19,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import useGetAppointments from "@/features/appointments/useGetAppointments";
+import { useGetPatientAppointments } from "@/hooks/patient";
 
 interface Doctor {
   specialty: string;
@@ -34,7 +35,8 @@ interface Appointment {
 }
 
 const AppointmentList = () => {
-  const { isLoading, error, appointments } = useGetAppointments();
+  const { isLoading, error, appointments, pagination } =
+    useGetPatientAppointments();
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
       case "completed":
@@ -51,7 +53,6 @@ const AppointmentList = () => {
   if (isLoading) {
     return <Spinner />;
   }
-
   if (error) {
     return (
       <Card className="bg-white/50 backdrop-blur border-none shadow-lg">
@@ -98,10 +99,11 @@ const AppointmentList = () => {
                     <TableCell>
                       <div>
                         <p className="font-medium">
-                          Dr. {appointment.doctors.specialty}
+                          Dr.{" "}
+                          {`${appointment.Doctor.first_name} ${appointment.Doctor.last_name}`}
                         </p>
                         <p className="text-sm text-muted-foreground">
-                          {appointment.doctors.qualification}
+                          {appointment.Doctor.specialty}
                         </p>
                       </div>
                     </TableCell>
