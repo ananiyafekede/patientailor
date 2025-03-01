@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { format } from "date-fns";
 import { Calendar } from "@/components/ui/calendar";
@@ -49,12 +48,14 @@ const BookAppointment = () => {
 
   const handleBookAppointment = async () => {
     if (!selectedScheduleId || !selectedDoctor) return;
-    
+
     // Find the selected schedule from the schedules array
-    const selectedSchedule = schedules.find(schedule => schedule.id.toString() === selectedScheduleId);
-    
+    const selectedSchedule = schedules.find(
+      (schedule) => schedule.id.toString() === selectedScheduleId
+    );
+
     if (!selectedSchedule) return;
-    
+
     bookAppointment({
       doctor_id: selectedDoctor,
       schedule_id: parseInt(selectedScheduleId),
@@ -67,7 +68,7 @@ const BookAppointment = () => {
   function handleTimeChange(scheduleId: string) {
     setSelectedScheduleId(scheduleId);
   }
-  
+
   if (doctorsLoading) {
     return <div>Loading doctors...</div>;
   }
@@ -127,6 +128,11 @@ const BookAppointment = () => {
             <CardHeader>
               <CardTitle>Available Time Slots</CardTitle>
               <CardDescription>Select your preferred time</CardDescription>
+              <CardDescription className="text-red-500 text-sm">
+                {schedules.length === 0
+                  ? "There are no available schedules."
+                  : null}
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <Select

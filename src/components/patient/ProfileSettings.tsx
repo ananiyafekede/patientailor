@@ -3,8 +3,21 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import toast from "react-hot-toast";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
@@ -28,20 +41,22 @@ const ProfileSettings = ({ profile }: { profile: any }) => {
   const onSubmit = async (values: z.infer<typeof profileSchema>) => {
     setIsLoading(true);
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session?.user) throw new Error('No user found');
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      if (!session?.user) throw new Error("No user found");
 
       const { error } = await supabase
-        .from('profiles')
+        .from("profiles")
         .update(values)
-        .eq('id', session.user.id);
+        .eq("id", session.user.id);
 
       if (error) throw error;
-      
-      toast.success('Profile updated successfully');
+
+      toast.success("Profile updated successfully");
     } catch (error) {
-      toast.error('Failed to update profile');
-      console.error('Profile update error:', error);
+      toast.error("Failed to update profile");
+      console.error("Profile update error:", error);
     } finally {
       setIsLoading(false);
     }

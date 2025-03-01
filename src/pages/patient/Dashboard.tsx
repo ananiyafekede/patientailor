@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { Suspense, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import { Calendar, Clock, DollarSign, FileText, User } from "lucide-react";
@@ -12,6 +12,8 @@ import ProfileSettings from "@/components/patient/ProfileSettings";
 import BillingHistory from "@/components/patient/BillingHistory";
 import FeedbackForm from "@/components/patient/FeedbackForm";
 import { Button } from "@/components/ui/button";
+import { useGetPatientAppointments } from "@/hooks/patient";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const PatientDashboard = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -19,7 +21,11 @@ const PatientDashboard = () => {
   useEffect(() => {
     setSearchParams({ tab: "appointments" });
   }, []);
-  const appointments = [];
+  const {
+    appointments,
+    isLoading: isLoadingAppointments,
+    error,
+  } = useGetPatientAppointments();
   const currentTab = searchParams.get("tab") || "appointments";
 
   const handleTabChange = (tab: string) => {
@@ -52,7 +58,11 @@ const PatientDashboard = () => {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-[#2563EB]">
-                {appointments?.length || 0}
+                {isLoadingAppointments ? (
+                  <Skeleton className="w-20 h-8 bg-[#bfd2fa]" />
+                ) : (
+                  appointments?.length
+                )}
               </div>
             </CardContent>
           </Card>
@@ -63,9 +73,13 @@ const PatientDashboard = () => {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-[#2563EB]">
-                {appointments?.filter(
-                  (apt) => new Date(apt.appointment_date) > new Date()
-                ).length || 0}
+                {isLoadingAppointments ? (
+                  <Skeleton className="w-20 h-8 bg-[#bfd2fa]" />
+                ) : (
+                  appointments?.filter(
+                    (apt) => new Date(apt.appointment_date) > new Date()
+                  ).length
+                )}
               </div>
             </CardContent>
           </Card>

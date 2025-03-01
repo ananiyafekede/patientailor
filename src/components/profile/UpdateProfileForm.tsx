@@ -29,7 +29,7 @@ const UpdateProfileForm = () => {
     resolver: zodResolver(profileSchema),
     defaultValues: async () => {
       if (!user) return { first_name: "", last_name: "" };
-      
+
       const { data, error } = await supabase
         .from("profiles")
         .select("first_name, last_name")
@@ -50,7 +50,7 @@ const UpdateProfileForm = () => {
 
   const onSubmit = async (values: z.infer<typeof profileSchema>) => {
     if (!user) return;
-    
+
     setIsLoading(true);
     try {
       const { error } = await supabase
@@ -59,7 +59,7 @@ const UpdateProfileForm = () => {
         .eq("id", user.id);
 
       if (error) throw error;
-      
+
       toast.success("Profile updated successfully");
     } catch (error) {
       console.error("Error updating profile:", error);

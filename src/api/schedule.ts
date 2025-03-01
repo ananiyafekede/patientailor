@@ -1,4 +1,4 @@
-import { Appointment, Doctor, Pagination, Schedule } from "@/types";
+import { Pagination, Schedule } from "@/types";
 import axios, { AxiosError } from "axios";
 
 const BASE_URL = import.meta.env.VITE_BACKEND_URL;
@@ -23,12 +23,29 @@ const api = axios.create({
   withCredentials: true,
 });
 
-export async function getScheduleForDoctor(doctorId: string | number): Promise<{
+export async function getScheduleForDoctor(
+  doctorId: string | number,
+  selectedDate: Date | undefined,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  queryParams: { [key: string]: any } = {}
+): Promise<{
   schedules: Schedule[];
   pagination: Pagination;
 }> {
   try {
-    const res = await api.get(`/doctors/${doctorId}/schedule`);
+    const params: URLSearchParams = new URLSearchParams();
+
+    if (selectedDate) {
+      params.append("schedule_date", selectedDate.toISOString().split("T")[0]);
+    }
+
+    for (const [key, value] of Object.entries(queryParams)) {
+      params.append(key, value);
+    }
+
+    const res = await api.get(
+      `/doctors/${doctorId}/schedule?${params.toString()}`
+    );
     return res.data.data;
   } catch (error) {
     return handleError(error);
