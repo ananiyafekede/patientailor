@@ -5,6 +5,8 @@ import AppointmentList from "@/components/doctor/AppointmentList";
 import { DashboardHeader } from "@/components/doctor/DashboardHeader";
 import { MetricsCards } from "@/components/doctor/MetricsCards";
 import { AnalyticsSection } from "@/components/doctor/AnalyticsSection";
+import ScheduleManager from "@/components/doctor/ScheduleManager";
+import PatientsList from "@/components/doctor/PatientsList";
 import { useAuth } from "@/contexts/AuthContext";
 import { useEffect, useState } from "react";
 import { 
@@ -13,6 +15,7 @@ import {
   useGetDoctorPatients 
 } from "@/hooks/doctor";
 import { toast } from "react-hot-toast";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const revenueData = [
   { name: "Mon", income: 3200, expense: 1700 },
@@ -101,7 +104,7 @@ const DoctorDashboard = () => {
       <div className="container mx-auto p-6 space-y-6 bg-gray-50 min-h-screen">
         <DashboardHeader
           username={doctorProfile.username}
-          specialty={detail?.specialty}
+          specialty={detail?.specialty || ""}
           appointmentsToday={todayAppointments}
         />
 
@@ -113,9 +116,35 @@ const DoctorDashboard = () => {
           rating={4.8}
         />
 
-        <AnalyticsSection revenueData={revenueData} />
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <AnalyticsSection revenueData={revenueData} />
+          
+          <div className="bg-white p-6 rounded-lg shadow-md">
+            <h2 className="text-xl font-semibold mb-4">Schedule Management</h2>
+            <div className="space-y-4">
+              <ScheduleManager />
+            </div>
+          </div>
+        </div>
 
-        <AppointmentList />
+        <div className="mt-6 bg-white rounded-lg shadow-md p-6">
+          <Tabs defaultValue="appointments" className="space-y-4">
+            <TabsList>
+              <TabsTrigger value="appointments">Appointments</TabsTrigger>
+              <TabsTrigger value="patients">Patients</TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="appointments">
+              <h2 className="text-xl font-semibold mb-4">Appointments</h2>
+              <AppointmentList />
+            </TabsContent>
+            
+            <TabsContent value="patients">
+              <h2 className="text-xl font-semibold mb-4">My Patients</h2>
+              <PatientsList />
+            </TabsContent>
+          </Tabs>
+        </div>
       </div>
     </>
   );

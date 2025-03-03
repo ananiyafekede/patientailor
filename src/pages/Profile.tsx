@@ -3,7 +3,7 @@ import { Helmet } from "react-helmet-async";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { UpdateProfileForm } from "@/components/profile/UpdateProfileForm";
-import { ChangePasswordForm } from "@/components/profile/ChangePasswordForm";
+import ChangePasswordForm from "@/components/profile/ChangePasswordForm";
 import { useAuth } from "@/contexts/AuthContext";
 import { useUpdateMe, useChangePassword } from "@/hooks/auth";
 
@@ -11,12 +11,12 @@ const Profile = () => {
   const { user } = useAuth();
   const { 
     isPending: isUpdating, 
-    updateMe
+    updateUser: updateMe
   } = useUpdateMe();
 
   const { 
     isPending: isChangingPassword, 
-    changePassword
+    changePasswordMutation: changePassword
   } = useChangePassword();
 
   return (
