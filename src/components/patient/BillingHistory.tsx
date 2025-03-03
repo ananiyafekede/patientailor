@@ -1,16 +1,49 @@
 
-import { useState } from "react";
+import { useMemo } from "react";
 import { format } from "date-fns";
-import { DollarSign, AlertCircle } from "lucide-react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
-import { useGetPatientBillings } from "@/hooks/patient";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Download, Eye } from "lucide-react";
+import { Billing } from "@/types";
 
-const BillingHistory = () => {
-  const { data: bills, isLoading, error } = useGetPatientBillings();
+interface BillingHistoryProps {
+  billings: Billing[];
+  isLoading: boolean;
+  error: Error | null;
+}
+
+export const BillingHistory = ({
+  billings,
+  isLoading,
+  error,
+}: BillingHistoryProps) => {
+  const sortedBillings = useMemo(() => {
+    if (!billings || !billings.length) return [];
+    
+    return [...billings].sort((a, b) => {
+      // Sort by payment date, most recent first
+      if (a.payment_date && b.payment_date) {
+        return new Date(b.payment_date).getTime() - new Date(a.payment_date).getTime();
+      }
+      return 0;
+    });
+  }, [billings]);
 
   if (isLoading) {
     return <Spinner />;
@@ -18,70 +51,81 @@ const BillingHistory = () => {
 
   if (error) {
     return (
-      <Alert variant="destructive">
-        <AlertCircle className="h-4 w-4" />
-        <AlertTitle>Error</AlertTitle>
-        <AlertDescription>
-          Unable to load billing history. Please try again later.
-        </AlertDescription>
-      </Alert>
+      <Card>
+        <CardContent className="pt-6">
+          <div className="text-center text-red-500">
+            Error loading billing history. Please try again later.
+          </div>
+        </CardContent>
+      </Card>
     );
   }
 
   return (
-    <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle>Billing History</CardTitle>
-          <CardDescription>View and manage your medical bills</CardDescription>
-        </CardHeader>
-        <CardContent>
-          {bills && bills.length > 0 ? (
-            <div className="space-y-4">
-              {bills.map((bill) => (
-                <Card key={bill.id}>
-                  <CardHeader>
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <CardTitle className="text-lg">
-                          {bill.appointments?.doctors?.specialty || "Medical"} Consultation
-                        </CardTitle>
-                        <CardDescription>
-                          {bill.appointments?.appointment_date 
-                            ? format(new Date(bill.appointments.appointment_date), "PPP") 
-                            : "Date not available"}
-                        </CardDescription>
-                      </div>
+    <Card className="shadow-md">
+      <CardHeader>
+        <CardTitle>Billing History</CardTitle>
+        <CardDescription>View and manage your payment history</CardDescription>
+      </CardHeader>
+      <CardContent>
+        {sortedBillings.length === 0 ? (
+          <div className="text-center py-10 text-muted-foreground">
+            No billing records found
+          </div>
+        ) : (
+          <div className="rounded-md border">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Invoice #</TableHead>
+                  <TableHead>Date</TableHead>
+                  <TableHead>Amount</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {sortedBillings.map((billing) => (
+                  <TableRow key={billing.id}>
+                    <TableCell className="font-medium">INV-{billing.id}</TableCell>
+                    <TableCell>
+                      {billing.payment_date
+                        ? format(new Date(billing.payment_date), "MMM dd, yyyy")
+                        : "Not paid"}
+                    </TableCell>
+                    <TableCell>${billing.amount}</TableCell>
+                    <TableCell>
                       <Badge
-                        variant={bill.payment_status === "paid" ? "default" : "destructive"}
+                        className={
+                          billing.payment_status === "paid"
+                            ? "bg-green-500"
+                            : "bg-yellow-500"
+                        }
                       >
-                        {bill.payment_status}
+                        {billing.payment_status === "paid" ? "Paid" : "Pending"}
                       </Badge>
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center">
-                        <DollarSign className="h-5 w-5 text-muted-foreground mr-2" />
-                        <span className="text-2xl font-bold">${bill.amount}</span>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex space-x-2">
+                        <Button size="sm" variant="outline">
+                          <Eye className="mr-2 h-4 w-4" />
+                          View
+                        </Button>
+                        {billing.payment_status === "paid" && (
+                          <Button size="sm" variant="outline">
+                            <Download className="mr-2 h-4 w-4" />
+                            Invoice
+                          </Button>
+                        )}
                       </div>
-                      {bill.payment_status !== "paid" && (
-                        <Button>Pay Now</Button>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-8 text-muted-foreground">
-              No billing history available
-            </div>
-          )}
-        </CardContent>
-      </Card>
-    </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        )}
+      </CardContent>
+    </Card>
   );
 };
-
-export default BillingHistory;

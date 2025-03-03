@@ -1,3 +1,4 @@
+
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 import {
@@ -57,6 +58,17 @@ export async function getDoctorById(id: number | string): Promise<Doctor> {
   try {
     const res = await api.get(`/doctors/${id}`);
     return res.data.data.doctor;
+  } catch (error) {
+    return handleError(error);
+  }
+}
+
+export async function getDetail(): Promise<{
+  detail: Doctor;
+}> {
+  try {
+    const res = await api.get(`/doctors/detail`);
+    return res.data.data;
   } catch (error) {
     return handleError(error);
   }
