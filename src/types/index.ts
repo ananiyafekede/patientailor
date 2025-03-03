@@ -1,3 +1,4 @@
+
 export interface User {
   id: number;
   username: string;
@@ -52,6 +53,7 @@ export interface Feedback {
   id: number;
   patient_id: number;
   feedback_text: string;
+  created_at?: string;
 }
 
 export interface Notification {
@@ -59,6 +61,7 @@ export interface Notification {
   user_id: number;
   message: string;
   is_read: boolean;
+  created_at?: string;
 }
 
 export interface Report {
@@ -66,6 +69,7 @@ export interface Report {
   report_type: string;
   report_content: object;
   created_by?: number | null;
+  created_at?: string;
 }
 
 export interface Billing {
@@ -107,9 +111,90 @@ export interface RegisterProps {
   avatar: string | undefined;
   phone_number?: string;
 }
+
 export interface Pagination {
   total: number;
   limit: number;
   page: number;
   totalPages: number;
+}
+
+// New types for API endpoints
+
+export interface UpdateUserProps {
+  username?: string;
+  email?: string;
+  phone_number?: string;
+  avatar?: string;
+}
+
+export interface UpdatePatientProps extends UpdateUserProps {
+  first_name?: string;
+  last_name?: string;
+  date_of_birth?: string;
+  address?: string;
+}
+
+export interface UpdateDoctorProps extends UpdateUserProps {
+  first_name?: string;
+  last_name?: string;
+  specialty?: string;
+  qualification?: string;
+  experience_years?: number;
+  address?: string;
+}
+
+export interface ChangePasswordProps {
+  current_password: string;
+  new_password: string;
+  confirm_password: string;
+}
+
+export interface ForgotPasswordProps {
+  email: string;
+}
+
+export interface ResetPasswordProps {
+  password: string;
+  confirm_password: string;
+  token: string;
+}
+
+export interface BookAppointmentProps {
+  doctor_id: string | number;
+  schedule_id: number;
+  appointment_date: string;
+  appointment_time: string;
+  notes?: string;
+}
+
+export interface ScheduleProps {
+  schedule_date: string;
+  start_time: string;
+  end_time: string;
+}
+
+export interface FeedbackProps {
+  feedback_text: string;
+}
+
+export interface NotificationProps {
+  user_id: number;
+  message: string;
+}
+
+export interface PrescriptionProps {
+  appointment_id: number;
+  medications: {
+    name: string;
+    dosage: string;
+    frequency: string;
+    duration: string;
+  }[];
+  instructions?: string;
+}
+
+export interface AppointmentStatusProps {
+  status: "pending" | "completed" | "canceled";
+  notes?: string;
 }

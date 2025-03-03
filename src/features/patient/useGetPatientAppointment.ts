@@ -1,10 +1,11 @@
+
 import { getPatientAppointments } from "@/api/patient";
 import { useQuery } from "@tanstack/react-query";
 
-function useGetPatientAppointments() {
+function useGetPatientAppointments(id?: number | string, queryParams?: Record<string, any>) {
   const { isLoading, data, error } = useQuery({
-    queryKey: ["patient-appointments"],
-    queryFn: getPatientAppointments,
+    queryKey: ["patient-appointments", id, queryParams],
+    queryFn: () => getPatientAppointments(id, queryParams),
   });
 
   return {

@@ -1,11 +1,10 @@
-import { useQuery } from "@tanstack/react-query";
+
 import { Edit2, Eye, Trash2 } from "lucide-react";
 import { DataTable } from "@/components/ui/data-table/DataTable";
-import { supabase } from "@/integrations/supabase/client";
 import { Spinner } from "@/components/ui/spinner";
 import toast from "react-hot-toast";
 import { format } from "date-fns";
-import useGetAppointments from "@/featurs/appointments/useGetAppointments";
+import useGetAppointments from "@/features/appointments/useGetAppointments";
 
 const AppointmentsTable = () => {
   const columns = [

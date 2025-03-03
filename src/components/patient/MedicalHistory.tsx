@@ -1,3 +1,4 @@
+
 import { useQuery } from "@tanstack/react-query";
 import { FileText } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -22,6 +23,9 @@ const MedicalHistory = () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session?.user) throw new Error('No user found');
       
+      // Convert user ID to number if needed or use string comparison in the query
+      const userId = session.user.id;
+      
       const { data, error } = await supabase
         .from('appointments')
         .select(`
@@ -33,7 +37,7 @@ const MedicalHistory = () => {
             qualification
           )
         `)
-        .eq('patient_id', session.user.id)
+        .eq('patient_id', userId)
         .eq('is_completed', true)
         .order('appointment_date', { ascending: false });
         

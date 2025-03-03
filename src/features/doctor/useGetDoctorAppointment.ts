@@ -1,16 +1,17 @@
+
 import { getDoctorAppointments } from "@/api/doctor";
 import { useQuery } from "@tanstack/react-query";
 
-function useGetDoctorAppointment() {
+function useGetDoctorAppointment(queryParams?: Record<string, any>) {
   const { isLoading, data, error } = useQuery({
-    queryFn: getDoctorAppointments,
-    queryKey: ["doctor-appointments"],
+    queryKey: ["doctor-appointments", queryParams],
+    queryFn: () => getDoctorAppointments(queryParams),
   });
 
   return {
     isLoading,
-    doctorAppointments: data.appointments,
-    pagination: data.pagination,
+    appointments: data?.appointments || [],
+    pagination: data?.pagination,
     error,
   };
 }
