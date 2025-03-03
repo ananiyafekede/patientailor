@@ -1,4 +1,3 @@
-
 import { Suspense, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
@@ -13,43 +12,43 @@ import ProfileSettings from "@/components/patient/ProfileSettings";
 import BillingHistory from "@/components/patient/BillingHistory";
 import FeedbackForm from "@/components/patient/FeedbackForm";
 import { Button } from "@/components/ui/button";
-import { useGetPatientAppointments, useGetPatientReports, useGetPatientBillings } from "@/hooks/patient";
+import {
+  useGetPatientAppointments,
+  useGetPatientReports,
+  useGetPatientBillings,
+} from "@/hooks/patient";
 import { Skeleton } from "@/components/ui/skeleton";
 
 const PatientDashboard = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
   const { user } = useAuth();
-  
+
   useEffect(() => {
-    if (!searchParams.get('tab')) {
+    if (!searchParams.get("tab")) {
       setSearchParams({ tab: "appointments" });
     }
   }, []);
-  
-  const {
-    appointments,
-    isLoading: isLoadingAppointments,
-  } = useGetPatientAppointments();
-  
-  const { 
-    reports, 
-    isLoading: isLoadingReports 
-  } = useGetPatientReports();
-  
-  const {
-    data: billings,
-    isLoading: isLoadingBillings
-  } = useGetPatientBillings();
-  
+
+  const { appointments, isLoading: isLoadingAppointments } =
+    useGetPatientAppointments();
+
+  const { reports, isLoading: isLoadingReports } = useGetPatientReports();
+
+  const { data: billings, isLoading: isLoadingBillings } =
+    useGetPatientBillings();
+
   const currentTab = searchParams.get("tab") || "appointments";
 
   const handleTabChange = (tab: string) => {
     setSearchParams({ tab });
   };
 
-  const pendingBills = billings?.filter(bill => bill.payment_status === "pending")?.length || 0;
-  const upcomingAppointments = appointments?.filter(apt => new Date(apt.appointment_date) > new Date()).length || 0;
+  const pendingBills =
+    billings?.filter((bill) => bill.payment_status === "pending")?.length || 0;
+  const upcomingAppointments =
+    appointments?.filter((apt) => new Date(apt.appointment_date) > new Date())
+      .length || 0;
 
   return (
     <>
@@ -62,7 +61,7 @@ const PatientDashboard = () => {
           <h1 className="text-base md:text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#2563EB] to-blue-700">
             Welcome, {user?.username}
           </h1>
-          <Button 
+          <Button
             className="bg-[#2563EB] hover:bg-blue-700 text-white"
             onClick={() => handleTabChange("profile")}
           >
@@ -199,9 +198,7 @@ const PatientDashboard = () => {
             <ProfileSettings profile={user} />
           </TabsContent>
 
-          <TabsContent value="billing">
-            <BillingHistory />
-          </TabsContent>
+          <TabsContent value="billing">{/* <BillingHistory /> */}</TabsContent>
 
           <TabsContent value="feedback">
             <FeedbackForm />

@@ -1,5 +1,12 @@
-
-import { Appointment, Billing, Pagination, Patient, Report, UpdatePatientProps } from "@/types";
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import {
+  Appointment,
+  Billing,
+  Pagination,
+  Patient,
+  Report,
+  UpdatePatientProps,
+} from "@/types";
 import axios, { AxiosError } from "axios";
 
 const BASE_URL = import.meta.env.VITE_BACKEND_URL;
@@ -35,7 +42,7 @@ export async function getPatients(queryParams?: Record<string, any>): Promise<{
         params.append(key, value);
       });
     }
-    
+
     const res = await api.get(`/patients?${params.toString()}`);
     return res.data.data;
   } catch (error) {
@@ -52,7 +59,10 @@ export async function getPatientById(id: number | string): Promise<Patient> {
   }
 }
 
-export async function updatePatient(id: number | string, data: UpdatePatientProps): Promise<Patient> {
+export async function updatePatient(
+  id: number | string,
+  data: UpdatePatientProps
+): Promise<Patient> {
   try {
     const res = await api.patch(`/patients/${id}`, data);
     return res.data.data.patient;
@@ -61,7 +71,9 @@ export async function updatePatient(id: number | string, data: UpdatePatientProp
   }
 }
 
-export async function deletePatient(id: number | string): Promise<{ message: string }> {
+export async function deletePatient(
+  id: number | string
+): Promise<{ message: string }> {
   try {
     const res = await api.delete(`/patients/${id}`);
     return res.data;
@@ -84,8 +96,10 @@ export async function getPatientAppointments(
         params.append(key, value);
       });
     }
-    
-    const endpoint = id ? `/patients/${id}/appointments` : '/patients/appointments';
+
+    const endpoint = id
+      ? `/patients/${id}/appointments`
+      : "/patients/appointments";
     const res = await api.get(`${endpoint}?${params.toString()}`);
     return res.data.data;
   } catch (error) {
@@ -107,8 +121,8 @@ export async function getPatientReports(
         params.append(key, value);
       });
     }
-    
-    const endpoint = id ? `/patients/${id}/reports` : '/patients/reports';
+
+    const endpoint = id ? `/patients/${id}/reports` : "/patients/reports";
     const res = await api.get(`${endpoint}?${params.toString()}`);
     return res.data.data;
   } catch (error) {
@@ -130,8 +144,8 @@ export async function getPatientBillings(
         params.append(key, value);
       });
     }
-    
-    const endpoint = id ? `/patients/${id}/billings` : '/patients/billings';
+
+    const endpoint = id ? `/patients/${id}/billings` : "/patients/billings";
     const res = await api.get(`${endpoint}?${params.toString()}`);
     return res.data.data;
   } catch (error) {
@@ -139,11 +153,13 @@ export async function getPatientBillings(
   }
 }
 
-export async function uploadMedicalRecords(formData: FormData): Promise<{ message: string }> {
+export async function uploadMedicalRecords(
+  formData: FormData
+): Promise<{ message: string }> {
   try {
-    const res = await api.post('/patients/upload-records', formData, {
+    const res = await api.post("/patients/upload-records", formData, {
       headers: {
-        'Content-Type': 'multipart/form-data',
+        "Content-Type": "multipart/form-data",
       },
     });
     return res.data;
@@ -160,7 +176,7 @@ export async function bookPatientAppointment(data: {
   notes?: string;
 }): Promise<Appointment> {
   try {
-    const res = await api.post("/patients/appointments/book", data);
+    const res = await api.post("/appointments/book", data);
     return res.data.data.appointment;
   } catch (error) {
     return handleError(error);

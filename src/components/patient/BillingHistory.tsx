@@ -1,4 +1,3 @@
-
 import { useMemo } from "react";
 import { format } from "date-fns";
 import {
@@ -28,18 +27,21 @@ interface BillingHistoryProps {
   error: Error | null;
 }
 
-export const BillingHistory = ({
+const BillingHistory = ({
   billings,
   isLoading,
   error,
 }: BillingHistoryProps) => {
   const sortedBillings = useMemo(() => {
     if (!billings || !billings.length) return [];
-    
+
     return [...billings].sort((a, b) => {
       // Sort by payment date, most recent first
       if (a.payment_date && b.payment_date) {
-        return new Date(b.payment_date).getTime() - new Date(a.payment_date).getTime();
+        return (
+          new Date(b.payment_date).getTime() -
+          new Date(a.payment_date).getTime()
+        );
       }
       return 0;
     });
@@ -87,7 +89,9 @@ export const BillingHistory = ({
               <TableBody>
                 {sortedBillings.map((billing) => (
                   <TableRow key={billing.id}>
-                    <TableCell className="font-medium">INV-{billing.id}</TableCell>
+                    <TableCell className="font-medium">
+                      INV-{billing.id}
+                    </TableCell>
                     <TableCell>
                       {billing.payment_date
                         ? format(new Date(billing.payment_date), "MMM dd, yyyy")
@@ -129,3 +133,5 @@ export const BillingHistory = ({
     </Card>
   );
 };
+
+export default BillingHistory;

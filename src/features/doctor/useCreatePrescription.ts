@@ -1,12 +1,11 @@
-
 import { createPrescription } from "@/api/doctor";
-import { PrescriptionProps } from "@/types";
+import { PrescriptionProps, Report } from "@/types";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
 
 function useCreatePrescription() {
   const queryClient = useQueryClient();
-  
+
   const { isPending, mutate: createPrescriptionMutation } = useMutation({
     mutationFn: (data: PrescriptionProps) => createPrescription(data),
     onError: (error: Error) => {

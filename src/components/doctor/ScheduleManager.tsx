@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useGetDoctorSchedule, useSetDoctorSchedule } from "@/hooks/schedule";
 import { Calendar } from "@/components/ui/calendar";
@@ -12,26 +11,28 @@ import toast from "react-hot-toast";
 import { Clock } from "lucide-react";
 
 const ScheduleManager = () => {
-  const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(
+    new Date()
+  );
   const [startTime, setStartTime] = useState("09:00");
   const [endTime, setEndTime] = useState("17:00");
-  
-  const { 
-    schedules, 
+
+  const {
+    schedules,
     isLoading: isLoadingSchedule,
-    error: scheduleError
-  } = useGetDoctorSchedule({ 
-    schedule_date: selectedDate ? format(selectedDate, 'yyyy-MM-dd') : undefined 
+    error: scheduleError,
+  } = useGetDoctorSchedule({
+    schedule_date: selectedDate
+      ? format(selectedDate, "yyyy-MM-dd")
+      : undefined,
   });
-  
-  const { 
-    isPending: isSettingSchedule,
-    setScheduleMutation
-  } = useSetDoctorSchedule();
+
+  const { isPending: isSettingSchedule, setScheduleMutation } =
+    useSetDoctorSchedule();
 
   // Check if schedule exists for selected date
   const existingSchedule = schedules?.find(
-    (schedule) => schedule.schedule_date === format(selectedDate!, 'yyyy-MM-dd')
+    (schedule) => schedule.schedule_date === format(selectedDate!, "yyyy-MM-dd")
   );
 
   // Update form values if schedule exists
@@ -49,24 +50,24 @@ const ScheduleManager = () => {
   // Handle schedule submission
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     // Form validation
     if (!selectedDate) {
       toast.error("Please select a date");
       return;
     }
-    
+
     if (startTime >= endTime) {
       toast.error("End time must be after start time");
       return;
     }
-    
+
     const scheduleData = {
-      schedule_date: format(selectedDate, 'yyyy-MM-dd'),
+      schedule_date: format(selectedDate, "yyyy-MM-dd"),
       start_time: startTime,
       end_time: endTime,
     };
-    
+
     setScheduleMutation(scheduleData);
   };
 
@@ -92,14 +93,14 @@ const ScheduleManager = () => {
             />
           </CardContent>
         </Card>
-        
+
         <Card className="border-0 shadow-sm">
           <CardContent className="p-6">
             <h3 className="text-lg font-medium mb-4 flex items-center">
               <Clock className="mr-2 h-5 w-5" />
               {existingSchedule ? "Update Schedule" : "Set Schedule"}
             </h3>
-            
+
             {isLoadingSchedule ? (
               <div className="flex justify-center py-4">
                 <Spinner />
@@ -108,13 +109,13 @@ const ScheduleManager = () => {
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="date">Selected Date</Label>
-                  <Input 
+                  <Input
                     id="date"
-                    value={selectedDate ? format(selectedDate, 'PPP') : ""}
+                    value={selectedDate ? format(selectedDate, "PPP") : ""}
                     readOnly
                   />
                 </div>
-                
+
                 <div className="space-y-2">
                   <Label htmlFor="startTime">Start Time</Label>
                   <Input
@@ -125,7 +126,7 @@ const ScheduleManager = () => {
                     required
                   />
                 </div>
-                
+
                 <div className="space-y-2">
                   <Label htmlFor="endTime">End Time</Label>
                   <Input
@@ -136,19 +137,21 @@ const ScheduleManager = () => {
                     required
                   />
                 </div>
-                
-                <Button 
-                  type="submit" 
+
+                <Button
+                  type="submit"
                   className="w-full"
                   disabled={isSettingSchedule}
                 >
                   {isSettingSchedule ? (
                     <>
-                      <Spinner className="mr-2 h-4 w-4" />
+                      <Spinner />
                       Saving...
                     </>
+                  ) : existingSchedule ? (
+                    "Update Schedule"
                   ) : (
-                    existingSchedule ? "Update Schedule" : "Set Schedule"
+                    "Set Schedule"
                   )}
                 </Button>
               </form>

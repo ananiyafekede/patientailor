@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 import { useState, useEffect } from "react";
 import { useGetDoctorPatients } from "@/hooks/doctor";
@@ -11,18 +12,15 @@ import { Search, User } from "lucide-react";
 const PatientsList = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [filteredPatients, setFilteredPatients] = useState<any[]>([]);
-  
-  const {
-    patients = [],
-    isLoading,
-    error,
-  } = useGetDoctorPatients();
+
+  const { patients = [], isLoading, error } = useGetDoctorPatients();
 
   useEffect(() => {
     if (patients?.length) {
       if (searchTerm) {
-        const filtered = patients.filter(patient => {
-          const fullName = `${patient.first_name} ${patient.last_name}`.toLowerCase();
+        const filtered = patients.filter((patient) => {
+          const fullName =
+            `${patient.first_name} ${patient.last_name}`.toLowerCase();
           return fullName.includes(searchTerm.toLowerCase());
         });
         setFilteredPatients(filtered);
@@ -79,18 +77,22 @@ const PatientsList = () => {
             <CardContent className="p-4">
               <div className="space-y-2">
                 <div className="grid grid-cols-2 gap-1">
-                  <div className="text-sm text-muted-foreground">Date of Birth:</div>
+                  <div className="text-sm text-muted-foreground">
+                    Date of Birth:
+                  </div>
                   <div className="text-sm">
-                    {patient.date_of_birth ? format(new Date(patient.date_of_birth), 'PPP') : 'N/A'}
+                    {patient.date_of_birth
+                      ? format(new Date(patient.date_of_birth), "PPP")
+                      : "N/A"}
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-1">
                   <div className="text-sm text-muted-foreground">Address:</div>
-                  <div className="text-sm">{patient.address || 'N/A'}</div>
+                  <div className="text-sm">{patient.address || "N/A"}</div>
                 </div>
                 <div className="grid grid-cols-2 gap-1">
                   <div className="text-sm text-muted-foreground">Email:</div>
-                  <div className="text-sm">{patient.email || 'N/A'}</div>
+                  <div className="text-sm">{patient.email || "N/A"}</div>
                 </div>
               </div>
             </CardContent>

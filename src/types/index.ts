@@ -1,4 +1,3 @@
-
 export interface User {
   id: number;
   username: string;
@@ -65,11 +64,13 @@ export interface Notification {
 }
 
 export interface Report {
-  id: number;
-  report_type: string;
-  report_content: object;
   created_by?: number | null;
   created_at?: string;
+  id?: number;
+  type?: "prescription" | "diagnosis" | "treatment" | "lab-test";
+  content: object;
+  author_id?: number;
+  patient_id: number;
 }
 
 export interface Billing {
@@ -77,6 +78,7 @@ export interface Billing {
   appointment_id: number;
   payment_status: "pending" | "paid";
   payment_method?: string | null;
+  payment_date?: string | null;
   amount: number;
 }
 
@@ -185,16 +187,13 @@ export interface NotificationProps {
 
 export interface PrescriptionProps {
   appointment_id: number;
-  medications: {
-    name: string;
-    dosage: string;
-    frequency: string;
-    duration: string;
-  }[];
-  instructions?: string;
+  patient_id: number;
+  diagnosis: string;
+  medication: string;
+  dosage: string;
+  instructions: string;
 }
 
 export interface AppointmentStatusProps {
   status: "pending" | "completed" | "canceled";
-  notes?: string;
 }

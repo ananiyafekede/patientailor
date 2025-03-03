@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 import { getDoctors } from "@/api/doctor";
 import { useQuery } from "@tanstack/react-query";

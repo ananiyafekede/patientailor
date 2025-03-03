@@ -1,4 +1,4 @@
-
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Appointment, AppointmentStatusProps, Pagination } from "@/types";
 import axios, { AxiosError } from "axios";
 
@@ -24,7 +24,9 @@ const api = axios.create({
   withCredentials: true,
 });
 
-export async function getAppointments(queryParams?: Record<string, any>): Promise<{
+export async function getAppointments(
+  queryParams?: Record<string, any>
+): Promise<{
   appointments: Appointment[];
   pagination: Pagination;
 }> {
@@ -35,7 +37,7 @@ export async function getAppointments(queryParams?: Record<string, any>): Promis
         params.append(key, value);
       });
     }
-    
+
     const res = await api.get(`/appointments?${params.toString()}`);
     return res.data.data;
   } catch (error) {
@@ -43,7 +45,9 @@ export async function getAppointments(queryParams?: Record<string, any>): Promis
   }
 }
 
-export async function getAppointmentById(id: number | string): Promise<Appointment> {
+export async function getAppointmentById(
+  id: number | string
+): Promise<Appointment> {
   try {
     const res = await api.get(`/appointments/${id}`);
     return res.data.data.appointment;
@@ -60,7 +64,7 @@ export async function bookAppointment(data: {
   notes?: string;
 }): Promise<Appointment> {
   try {
-    const res = await api.post('/appointments/book', data);
+    const res = await api.post("/appointments/book", data);
     return res.data.data.appointment;
   } catch (error) {
     return handleError(error);
@@ -82,7 +86,9 @@ export async function rescheduleAppointment(
   }
 }
 
-export async function cancelAppointment(id: number | string): Promise<{ message: string }> {
+export async function cancelAppointment(
+  id: number | string
+): Promise<{ message: string }> {
   try {
     const res = await api.delete(`/appointments/${id}/cancel`);
     return res.data;
@@ -93,10 +99,10 @@ export async function cancelAppointment(id: number | string): Promise<{ message:
 
 export async function updateAppointmentStatus(
   id: number | string,
-  data: AppointmentStatusProps
+  status: string
 ): Promise<Appointment> {
   try {
-    const res = await api.patch(`/appointments/${id}/status`, data);
+    const res = await api.patch(`/appointments/${id}/status`, { status });
     return res.data.data.appointment;
   } catch (error) {
     return handleError(error);
