@@ -1,5 +1,15 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
-import { Appointment, Doctor, Pagination, Patient, PrescriptionProps, Report, ScheduleProps, UpdateDoctorProps } from "@/types";
+import {
+  Appointment,
+  Doctor,
+  Pagination,
+  Patient,
+  PrescriptionProps,
+  Report,
+  ScheduleProps,
+  UpdateDoctorProps,
+} from "@/types";
 import axios, { AxiosError } from "axios";
 
 const BASE_URL = import.meta.env.VITE_BACKEND_URL;
@@ -35,7 +45,7 @@ export async function getDoctors(queryParams?: Record<string, any>): Promise<{
         params.append(key, value);
       });
     }
-    
+
     const res = await api.get(`/doctors?${params.toString()}`);
     return res.data.data;
   } catch (error) {
@@ -52,7 +62,10 @@ export async function getDoctorById(id: number | string): Promise<Doctor> {
   }
 }
 
-export async function updateDoctor(id: number | string, data: UpdateDoctorProps): Promise<Doctor> {
+export async function updateDoctor(
+  id: number | string,
+  data: UpdateDoctorProps
+): Promise<Doctor> {
   try {
     const res = await api.patch(`/doctors/${id}`, data);
     return res.data.data.doctor;
@@ -61,7 +74,9 @@ export async function updateDoctor(id: number | string, data: UpdateDoctorProps)
   }
 }
 
-export async function deleteDoctor(id: number | string): Promise<{ message: string }> {
+export async function deleteDoctor(
+  id: number | string
+): Promise<{ message: string }> {
   try {
     const res = await api.delete(`/doctors/${id}`);
     return res.data;
@@ -70,7 +85,9 @@ export async function deleteDoctor(id: number | string): Promise<{ message: stri
   }
 }
 
-export async function getDoctorSchedule(queryParams?: Record<string, any>): Promise<{
+export async function getDoctorSchedule(
+  queryParams?: Record<string, any>
+): Promise<{
   schedules: ScheduleProps[];
   pagination: Pagination;
 }> {
@@ -81,7 +98,7 @@ export async function getDoctorSchedule(queryParams?: Record<string, any>): Prom
         params.append(key, value);
       });
     }
-    
+
     const res = await api.get(`/doctors/schedule?${params.toString()}`);
     return res.data.data;
   } catch (error) {
@@ -89,16 +106,20 @@ export async function getDoctorSchedule(queryParams?: Record<string, any>): Prom
   }
 }
 
-export async function setDoctorSchedule(data: ScheduleProps): Promise<{ message: string }> {
+export async function setDoctorSchedule(
+  data: ScheduleProps
+): Promise<{ message: string }> {
   try {
-    const res = await api.post('/doctors/set-schedule', data);
+    const res = await api.post("/doctors/set-schedule", data);
     return res.data;
   } catch (error) {
     return handleError(error);
   }
 }
 
-export async function getDoctorAppointments(queryParams?: Record<string, any>): Promise<{
+export async function getDoctorAppointments(
+  queryParams?: Record<string, any>
+): Promise<{
   appointments: Appointment[];
   pagination: Pagination;
 }> {
@@ -109,7 +130,7 @@ export async function getDoctorAppointments(queryParams?: Record<string, any>): 
         params.append(key, value);
       });
     }
-    
+
     const res = await api.get(`/doctors/appointments?${params.toString()}`);
     return res.data.data;
   } catch (error) {
@@ -117,16 +138,20 @@ export async function getDoctorAppointments(queryParams?: Record<string, any>): 
   }
 }
 
-export async function createPrescription(data: PrescriptionProps): Promise<Report> {
+export async function createPrescription(
+  data: PrescriptionProps
+): Promise<Report> {
   try {
-    const res = await api.post('/doctors/prescription', data);
+    const res = await api.post("/doctors/prescription", data);
     return res.data.data.prescription;
   } catch (error) {
     return handleError(error);
   }
 }
 
-export async function getDoctorPatients(queryParams?: Record<string, any>): Promise<{
+export async function getDoctorPatients(
+  queryParams?: Record<string, any>
+): Promise<{
   patients: Patient[];
   pagination: Pagination;
 }> {
@@ -137,7 +162,7 @@ export async function getDoctorPatients(queryParams?: Record<string, any>): Prom
         params.append(key, value);
       });
     }
-    
+
     const res = await api.get(`/doctors/patients?${params.toString()}`);
     return res.data.data;
   } catch (error) {
