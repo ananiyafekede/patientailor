@@ -1,5 +1,6 @@
+
 import { format } from "date-fns";
-import { Calendar, Clock } from "lucide-react";
+import { Calendar, Clock, Loader, Eye, Edit, X } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -18,30 +19,22 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import useGetAppointments from "@/features/appointments/useGetAppointments";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useGetPatientAppointments } from "@/hooks/patient";
-
-interface Doctor {
-  specialty: string;
-  qualification: string;
-}
-
-interface Appointment {
-  id: number;
-  appointment_date: string;
-  appointment_time: string;
-  status: string;
-  doctors: Doctor;
-}
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 const AppointmentList = () => {
-  const { isLoading, error, appointments, pagination } =
-    useGetPatientAppointments();
+  const navigate = useNavigate();
+  const { isLoading, error, appointments } = useGetPatientAppointments();
+  const [filter, setFilter] = useState("all"); // all, upcoming, past
+
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
       case "completed":
         return "bg-green-500";
       case "cancelled":
+      case "canceled":
         return "bg-red-500";
       case "pending":
         return "bg-yellow-500";
@@ -50,31 +43,70 @@ const AppointmentList = () => {
     }
   };
 
+  const filteredAppointments = appointments?.filter((appointment) => {
+    const appointmentDate = new Date(appointment.appointment_date);
+    const today = new Date();
+    
+    if (filter === "upcoming") {
+      return appointmentDate >= today && appointment.status.toLowerCase() !== "cancelled";
+    } else if (filter === "past") {
+      return appointmentDate < today || appointment.status.toLowerCase() === "completed";
+    }
+    return true;
+  });
+
   if (isLoading) {
     return <Spinner />;
   }
+
   if (error) {
     return (
-      <Card className="bg-white/50 backdrop-blur border-none shadow-lg">
-        <CardContent className="pt-6">
-          <div className="text-center text-red-500">
-            Error loading appointments. Please try again later.
-          </div>
-        </CardContent>
-      </Card>
+      <Alert variant="destructive">
+        <AlertTitle>Error</AlertTitle>
+        <AlertDescription>
+          Error loading appointments. Please try again later.
+        </AlertDescription>
+      </Alert>
     );
   }
 
   return (
     <Card className="bg-white/50 backdrop-blur border-none shadow-lg">
       <CardHeader>
-        <CardTitle>Your Appointments</CardTitle>
-        <CardDescription>
-          View and manage your upcoming and past appointments
-        </CardDescription>
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+          <div>
+            <CardTitle>Your Appointments</CardTitle>
+            <CardDescription>
+              View and manage your upcoming and past appointments
+            </CardDescription>
+          </div>
+          <div className="flex gap-2">
+            <Button 
+              variant={filter === "all" ? "default" : "outline"} 
+              size="sm"
+              onClick={() => setFilter("all")}
+            >
+              All
+            </Button>
+            <Button 
+              variant={filter === "upcoming" ? "default" : "outline"} 
+              size="sm"
+              onClick={() => setFilter("upcoming")}
+            >
+              Upcoming
+            </Button>
+            <Button 
+              variant={filter === "past" ? "default" : "outline"} 
+              size="sm"
+              onClick={() => setFilter("past")}
+            >
+              Past
+            </Button>
+          </div>
+        </div>
       </CardHeader>
       <CardContent>
-        {!appointments || appointments.length === 0 ? (
+        {!filteredAppointments || filteredAppointments.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-40">
             <p className="text-muted-foreground">No appointments found</p>
             <Button variant="outline" className="mt-4">
@@ -94,16 +126,16 @@ const AppointmentList = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {appointments.map((appointment) => (
+                {filteredAppointments.map((appointment) => (
                   <TableRow key={appointment.id}>
                     <TableCell>
                       <div>
                         <p className="font-medium">
                           Dr.{" "}
-                          {`${appointment.Doctor.first_name} ${appointment.Doctor.last_name}`}
+                          {`${appointment.Doctor?.first_name || ""} ${appointment.Doctor?.last_name || ""}`}
                         </p>
                         <p className="text-sm text-muted-foreground">
-                          {appointment.Doctor.specialty}
+                          {appointment.Doctor?.specialty || "Specialist"}
                         </p>
                       </div>
                     </TableCell>
@@ -129,10 +161,23 @@ const AppointmentList = () => {
                         {appointment.status}
                       </Badge>
                     </TableCell>
-                    <TableCell className="text-right">
+                    <TableCell className="text-right space-x-2">
                       <Button variant="outline" size="sm">
-                        View Details
+                        <Eye className="h-4 w-4 mr-1" />
+                        Details
                       </Button>
+                      {appointment.status === "pending" && new Date(appointment.appointment_date) > new Date() && (
+                        <>
+                          <Button variant="outline" size="sm">
+                            <Edit className="h-4 w-4 mr-1" />
+                            Reschedule
+                          </Button>
+                          <Button variant="outline" size="sm" className="text-red-500 hover:text-red-700">
+                            <X className="h-4 w-4 mr-1" />
+                            Cancel
+                          </Button>
+                        </>
+                      )}
                     </TableCell>
                   </TableRow>
                 ))}

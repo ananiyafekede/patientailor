@@ -8,7 +8,7 @@ import useSetDoctorSchedule from "@/features/doctor/useSetDoctorSchedule";
 import useGetDoctorAppointment from "@/features/doctor/useGetDoctorAppointment";
 import useCreatePrescription from "@/features/doctor/useCreatePrescription";
 import useGetDoctorPatients from "@/features/doctor/useGetDoctorPatients";
-import useGetDetail from "@/features/doctor/useGetDetail";
+import { useGetDetail } from "@/features/doctor/useGetDetail";
 
 export {
   useGetDoctors,

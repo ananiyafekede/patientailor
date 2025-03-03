@@ -1,3 +1,4 @@
+
 import { Suspense, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
@@ -12,25 +13,43 @@ import ProfileSettings from "@/components/patient/ProfileSettings";
 import BillingHistory from "@/components/patient/BillingHistory";
 import FeedbackForm from "@/components/patient/FeedbackForm";
 import { Button } from "@/components/ui/button";
-import { useGetPatientAppointments } from "@/hooks/patient";
+import { useGetPatientAppointments, useGetPatientReports, useGetPatientBillings } from "@/hooks/patient";
 import { Skeleton } from "@/components/ui/skeleton";
 
 const PatientDashboard = () => {
   const [searchParams, setSearchParams] = useSearchParams();
+  const navigate = useNavigate();
   const { user } = useAuth();
+  
   useEffect(() => {
-    setSearchParams({ tab: "appointments" });
+    if (!searchParams.get('tab')) {
+      setSearchParams({ tab: "appointments" });
+    }
   }, []);
+  
   const {
     appointments,
     isLoading: isLoadingAppointments,
-    error,
   } = useGetPatientAppointments();
+  
+  const { 
+    reports, 
+    isLoading: isLoadingReports 
+  } = useGetPatientReports();
+  
+  const {
+    data: billings,
+    isLoading: isLoadingBillings
+  } = useGetPatientBillings();
+  
   const currentTab = searchParams.get("tab") || "appointments";
 
   const handleTabChange = (tab: string) => {
     setSearchParams({ tab });
   };
+
+  const pendingBills = billings?.filter(bill => bill.payment_status === "pending")?.length || 0;
+  const upcomingAppointments = appointments?.filter(apt => new Date(apt.appointment_date) > new Date()).length || 0;
 
   return (
     <>
@@ -41,9 +60,12 @@ const PatientDashboard = () => {
       <div className="container mx-auto p-6 space-y-6 bg-gradient-to-br from-blue-50 to-[#2563EB]/10 min-h-screen">
         <div className="flex justify-between items-center">
           <h1 className="text-base md:text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#2563EB] to-blue-700">
-            {user?.username}
+            Welcome, {user?.username}
           </h1>
-          <Button className="bg-[#2563EB] hover:bg-blue-700 text-white">
+          <Button 
+            className="bg-[#2563EB] hover:bg-blue-700 text-white"
+            onClick={() => handleTabChange("profile")}
+          >
             <User className="mr-2 h-4 w-4" />
             Profile Settings
           </Button>
@@ -61,7 +83,7 @@ const PatientDashboard = () => {
                 {isLoadingAppointments ? (
                   <Skeleton className="w-20 h-8 bg-[#bfd2fa]" />
                 ) : (
-                  appointments?.length
+                  appointments?.length || 0
                 )}
               </div>
             </CardContent>
@@ -76,9 +98,7 @@ const PatientDashboard = () => {
                 {isLoadingAppointments ? (
                   <Skeleton className="w-20 h-8 bg-[#bfd2fa]" />
                 ) : (
-                  appointments?.filter(
-                    (apt) => new Date(apt.appointment_date) > new Date()
-                  ).length
+                  upcomingAppointments
                 )}
               </div>
             </CardContent>
@@ -91,7 +111,13 @@ const PatientDashboard = () => {
               <DollarSign className="h-4 w-4 text-[#2563EB]" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-[#2563EB]">0</div>
+              <div className="text-2xl font-bold text-[#2563EB]">
+                {isLoadingBillings ? (
+                  <Skeleton className="w-20 h-8 bg-[#bfd2fa]" />
+                ) : (
+                  pendingBills
+                )}
+              </div>
             </CardContent>
           </Card>
           <Card className="bg-white/50 backdrop-blur border-none shadow-lg hover:shadow-xl transition-all duration-200">
@@ -102,7 +128,13 @@ const PatientDashboard = () => {
               <FileText className="h-4 w-4 text-[#2563EB]" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-[#2563EB]">0</div>
+              <div className="text-2xl font-bold text-[#2563EB]">
+                {isLoadingReports ? (
+                  <Skeleton className="w-20 h-8 bg-[#bfd2fa]" />
+                ) : (
+                  reports?.length || 0
+                )}
+              </div>
             </CardContent>
           </Card>
         </div>

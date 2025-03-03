@@ -1,60 +1,31 @@
-import { useQuery } from "@tanstack/react-query";
+
+import { useState } from "react";
 import { format } from "date-fns";
-import { DollarSign } from "lucide-react";
+import { DollarSign, AlertCircle } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { supabase } from "@/integrations/supabase/client";
-
-interface Doctor {
-  specialty: string;
-  qualification: string;
-}
-
-interface Appointment {
-  appointment_date: string;
-  doctors: Doctor;
-}
-
-interface Bill {
-  id: number;
-  amount: number;
-  payment_status: string;
-  payment_method?: string;
-  payment_date?: string;
-  created_at?: string;
-  appointment_id?: number;
-  appointments?: Appointment;
-}
+import { Spinner } from "@/components/ui/spinner";
+import { useGetPatientBillings } from "@/hooks/patient";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 const BillingHistory = () => {
-  const { data: bills, isLoading } = useQuery({
-    queryKey: ['billingHistory'],
-    queryFn: async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session?.user) throw new Error('No user found');
-      
-      const { data, error } = await supabase
-        .from('billing')
-        .select(`
-          *,
-          appointments (
-            appointment_date,
-            doctors:doctor_id (
-              specialty,
-              qualification
-            )
-          )
-        `)
-        .order('created_at', { ascending: false });
-        
-      if (error) throw error;
-      return data as unknown as Bill[];
-    }
-  });
+  const { data: bills, isLoading, error } = useGetPatientBillings();
 
   if (isLoading) {
-    return <div>Loading billing history...</div>;
+    return <Spinner />;
+  }
+
+  if (error) {
+    return (
+      <Alert variant="destructive">
+        <AlertCircle className="h-4 w-4" />
+        <AlertTitle>Error</AlertTitle>
+        <AlertDescription>
+          Unable to load billing history. Please try again later.
+        </AlertDescription>
+      </Alert>
+    );
   }
 
   return (
@@ -73,10 +44,12 @@ const BillingHistory = () => {
                     <div className="flex items-start justify-between">
                       <div>
                         <CardTitle className="text-lg">
-                          {bill.appointments?.doctors?.specialty} Consultation
+                          {bill.appointments?.doctors?.specialty || "Medical"} Consultation
                         </CardTitle>
                         <CardDescription>
-                          {format(new Date(bill.appointments?.appointment_date), "PPP")}
+                          {bill.appointments?.appointment_date 
+                            ? format(new Date(bill.appointments.appointment_date), "PPP") 
+                            : "Date not available"}
                         </CardDescription>
                       </div>
                       <Badge

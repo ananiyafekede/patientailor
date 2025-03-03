@@ -1,53 +1,41 @@
 
-import { useQuery } from "@tanstack/react-query";
+import { useEffect, useState } from "react";
 import { FileText } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { supabase } from "@/integrations/supabase/client";
+import { Button } from "@/components/ui/button";
+import { format } from "date-fns";
+import { Spinner } from "@/components/ui/spinner";
+import { useGetPatientReports } from "@/hooks/patient";
+import { useAuth } from "@/contexts/AuthContext";
 
-interface Doctor {
-  specialty: string;
-  qualification: string;
-}
-
-interface Appointment {
+interface MedicalRecord {
   id: number;
-  appointment_date: string;
-  doctors: Doctor;
-  medical_notes?: string;
+  report_type: string;
+  report_date: string;
+  doctor_name: string;
+  doctor_specialty: string;
+  description: string;
+  file_url?: string;
 }
 
 const MedicalHistory = () => {
-  const { data: appointments, isLoading } = useQuery({
-    queryKey: ['medicalHistory'],
-    queryFn: async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session?.user) throw new Error('No user found');
-      
-      // Convert user ID to number if needed or use string comparison in the query
-      const userId = session.user.id;
-      
-      const { data, error } = await supabase
-        .from('appointments')
-        .select(`
-          id,
-          appointment_date,
-          medical_notes,
-          doctors:doctor_id (
-            specialty,
-            qualification
-          )
-        `)
-        .eq('patient_id', userId)
-        .eq('is_completed', true)
-        .order('appointment_date', { ascending: false });
-        
-      if (error) throw error;
-      return data as unknown as Appointment[];
-    }
-  });
+  const { user } = useAuth();
+  const { isLoading, reports, error } = useGetPatientReports();
 
   if (isLoading) {
-    return <div>Loading medical history...</div>;
+    return <Spinner />;
+  }
+
+  if (error) {
+    return (
+      <Card>
+        <CardContent className="pt-6">
+          <div className="text-center text-red-500">
+            Error loading medical history. Please try again later.
+          </div>
+        </CardContent>
+      </Card>
+    );
   }
 
   return (
@@ -58,18 +46,18 @@ const MedicalHistory = () => {
           <CardDescription>View your past appointments and medical records</CardDescription>
         </CardHeader>
         <CardContent>
-          {appointments && appointments.length > 0 ? (
+          {reports && reports.length > 0 ? (
             <div className="space-y-4">
-              {appointments.map((appointment) => (
-                <Card key={appointment.id}>
+              {reports.map((report) => (
+                <Card key={report.id}>
                   <CardHeader>
                     <div className="flex items-start justify-between">
                       <div>
                         <CardTitle className="text-lg">
-                          Appointment with Dr. {appointment.doctors.specialty}
+                          {report.report_type}
                         </CardTitle>
                         <CardDescription>
-                          {new Date(appointment.appointment_date).toLocaleDateString()}
+                          {format(new Date(report.created_at || new Date()), "PPP")}
                         </CardDescription>
                       </div>
                       <FileText className="h-5 w-5 text-muted-foreground" />
@@ -77,15 +65,21 @@ const MedicalHistory = () => {
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-2">
-                      <p className="text-sm text-muted-foreground">
-                        <strong>Doctor:</strong> {appointment.doctors.qualification}
+                      <p className="text-sm">
+                        <strong>Report ID:</strong> {report.id}
                       </p>
-                      {appointment.medical_notes && (
+                      {report.report_content && (
                         <div>
-                          <strong>Medical Notes:</strong>
-                          <p className="mt-1 text-sm">{appointment.medical_notes}</p>
+                          <strong>Details:</strong>
+                          <p className="mt-1 text-sm">{JSON.stringify(report.report_content)}</p>
                         </div>
                       )}
+                      <div className="pt-4 flex justify-end">
+                        <Button variant="outline" size="sm">
+                          <FileText className="mr-2 h-4 w-4" />
+                          View Full Report
+                        </Button>
+                      </div>
                     </div>
                   </CardContent>
                 </Card>
@@ -93,7 +87,7 @@ const MedicalHistory = () => {
             </div>
           ) : (
             <div className="text-center py-8 text-muted-foreground">
-              No medical history available
+              No medical reports available
             </div>
           )}
         </CardContent>

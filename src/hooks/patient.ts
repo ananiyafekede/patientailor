@@ -7,6 +7,7 @@ import useGetPatientAppointments from "@/features/patient/useGetPatientAppointme
 import useGetPatientReports from "@/features/patient/useGetPatientReports";
 import useUploadMedicalRecords from "@/features/patient/useUploadMedicalRecords";
 import useBookAppointment from "@/features/patient/useBookAppointment";
+import useGetPatientBillings from "@/features/patient/useGetPatientBillings";
 
 export {
   useGetPatients,
@@ -16,5 +17,6 @@ export {
   useGetPatientAppointments,
   useGetPatientReports,
   useUploadMedicalRecords,
-  useBookAppointment
+  useBookAppointment,
+  useGetPatientBillings
 };

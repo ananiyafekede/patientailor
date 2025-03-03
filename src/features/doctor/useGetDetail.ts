@@ -1,20 +1,16 @@
-// import { getDoctorDetail as getDoctorDetailApi } from "@/api/doctor";
-// import { useQuery } from "@tanstack/react-query";
-// import { Doctor } from "@/types/index";
-// // <
-// //   {
-// //     isLoading: boolean;
-// //     doctorDetail: Doctor;
-// //   }
-// // >
 
-// function useGetDetail(id: string) {
-//   const { isLoading, data: doctorDetail } = useQuery({
-//     queryKey: ["doctor", id],
-//     queryFn: () => getDoctorDetailApi(id),
-//   });
+import { getDetail } from "@/api/doctor";
+import { useQuery } from "@tanstack/react-query";
 
-//   return { isLoading, doctorDetail };
-// }
+export function useGetDetail() {
+  const { isLoading, data, error } = useQuery({
+    queryKey: ["doctor-detail"],
+    queryFn: getDetail,
+  });
 
-// export default useGetDetail;
+  return {
+    isLoading,
+    detail: data?.detail || {},
+    error,
+  };
+}
