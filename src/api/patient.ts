@@ -1,5 +1,5 @@
 
-import { Appointment, Pagination, Patient, Report, UpdatePatientProps } from "@/types";
+import { Appointment, Billing, Pagination, Patient, Report, UpdatePatientProps } from "@/types";
 import axios, { AxiosError } from "axios";
 
 const BASE_URL = import.meta.env.VITE_BACKEND_URL;
@@ -109,6 +109,29 @@ export async function getPatientReports(
     }
     
     const endpoint = id ? `/patients/${id}/reports` : '/patients/reports';
+    const res = await api.get(`${endpoint}?${params.toString()}`);
+    return res.data.data;
+  } catch (error) {
+    return handleError(error);
+  }
+}
+
+export async function getPatientBillings(
+  id?: number | string,
+  queryParams?: Record<string, any>
+): Promise<{
+  billings: Billing[];
+  pagination: Pagination;
+}> {
+  try {
+    const params = new URLSearchParams();
+    if (queryParams) {
+      Object.entries(queryParams).forEach(([key, value]) => {
+        params.append(key, value);
+      });
+    }
+    
+    const endpoint = id ? `/patients/${id}/billings` : '/patients/billings';
     const res = await api.get(`${endpoint}?${params.toString()}`);
     return res.data.data;
   } catch (error) {

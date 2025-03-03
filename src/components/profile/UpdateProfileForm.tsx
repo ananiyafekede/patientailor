@@ -1,118 +1,137 @@
-import { useState } from "react";
-import { useForm } from "react-hook-form";
+
 import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
-import { useAuth } from "@/contexts/AuthContext";
-import { supabase } from "@/integrations/supabase/client";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import toast from "react-hot-toast";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useUpdateMe } from "@/hooks/auth";
+import { User } from "@/types";
 
-const profileSchema = z.object({
-  first_name: z.string().min(2, "First name must be at least 2 characters"),
-  last_name: z.string().min(2, "Last name must be at least 2 characters"),
+const formSchema = z.object({
+  username: z.string().min(2, {
+    message: "Username must be at least 2 characters.",
+  }),
+  email: z.string().email({
+    message: "Please enter a valid email.",
+  }),
+  avatar: z.string().optional(),
+  phone_number: z.string().optional(),
 });
 
-const UpdateProfileForm = () => {
-  const { user } = useAuth();
-  const [isLoading, setIsLoading] = useState(false);
+interface UpdateProfileFormProps {
+  profile: User | undefined;
+}
 
-  const form = useForm<z.infer<typeof profileSchema>>({
-    resolver: zodResolver(profileSchema),
-    defaultValues: async () => {
-      if (!user) return { first_name: "", last_name: "" };
+export function UpdateProfileForm({ profile }: UpdateProfileFormProps) {
+  const { isPending, updateUser } = useUpdateMe();
 
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("first_name, last_name")
-        .eq("id", user.id)
-        .single();
-
-      if (error) {
-        console.error("Error fetching profile:", error);
-        return { first_name: "", last_name: "" };
-      }
-
-      return {
-        first_name: data.first_name || "",
-        last_name: data.last_name || "",
-      };
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      username: profile?.username || "",
+      email: profile?.email || "",
+      avatar: profile?.avatar || "",
+      phone_number: profile?.phone_number || "",
     },
   });
 
-  const onSubmit = async (values: z.infer<typeof profileSchema>) => {
-    if (!user) return;
-
-    setIsLoading(true);
-    try {
-      const { error } = await supabase
-        .from("profiles")
-        .update(values)
-        .eq("id", user.id);
-
-      if (error) throw error;
-
-      toast.success("Profile updated successfully");
-    } catch (error) {
-      console.error("Error updating profile:", error);
-      toast.error("Failed to update profile");
-    } finally {
-      setIsLoading(false);
+  function onSubmit(values: z.infer<typeof formSchema>) {
+    if (profile?.id) {
+      updateUser(String(profile.id), values);
     }
-  };
+  }
 
   return (
-    <div className="space-y-4">
-      <div>
-        <h2 className="text-2xl font-bold">Personal Information</h2>
-        <p className="text-muted-foreground">Update your personal details</p>
-      </div>
-
-      <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-          <FormField
-            control={form.control}
-            name="first_name"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>First Name</FormLabel>
-                <FormControl>
-                  <Input {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="last_name"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Last Name</FormLabel>
-                <FormControl>
-                  <Input {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <Button type="submit" disabled={isLoading}>
-            {isLoading ? "Updating..." : "Update Profile"}
-          </Button>
-        </form>
-      </Form>
-    </div>
+    <Card>
+      <CardHeader>
+        <CardTitle>Profile Settings</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="flex items-start gap-6">
+          <Avatar className="h-20 w-20">
+            <AvatarImage src={profile?.avatar} alt={profile?.username} />
+            <AvatarFallback>
+              {profile?.username?.substring(0, 2).toUpperCase()}
+            </AvatarFallback>
+          </Avatar>
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8 flex-1">
+              <FormField
+                control={form.control}
+                name="username"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Username</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Username" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="email"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Email</FormLabel>
+                    <FormControl>
+                      <Input type="email" placeholder="Email" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="phone_number"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Phone Number</FormLabel>
+                    <FormControl>
+                      <Input type="tel" placeholder="Phone Number" {...field} />
+                    </FormControl>
+                    <FormDescription>
+                      Your phone number will be used for appointment reminders.
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="avatar"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Avatar URL</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Avatar URL" {...field} />
+                    </FormControl>
+                    <FormDescription>
+                      Enter a URL for your profile picture.
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <Button type="submit" disabled={isPending}>
+                {isPending ? "Updating..." : "Update Profile"}
+              </Button>
+            </form>
+          </Form>
+        </div>
+      </CardContent>
+    </Card>
   );
-};
-
-export default UpdateProfileForm;
+}
