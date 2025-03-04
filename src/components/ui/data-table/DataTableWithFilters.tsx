@@ -33,6 +33,7 @@ interface Column {
   sortable?: boolean;
   filterable?: boolean;
   filterOptions?: { label: string; value: string }[];
+  render?: (item: any) => React.ReactNode;
 }
 
 interface Action {
@@ -83,7 +84,7 @@ export const DataTableWithFilters = ({
     }
   }, [queryParams, onQueryChange]);
 
-  // Handle search input change
+  // Handle search input change with debounce
   const handleSearch = (value: string) => {
     setQueryParams({
       search: value || undefined,
@@ -105,20 +106,12 @@ export const DataTableWithFilters = ({
       newSort = key; // Ascending
     }
 
-    setQueryParams({ sort: newSort });
+    setQueryParams({ sort: newSort, page: 1 });
   };
 
   // Handle filter change
   const handleFilter = (key: string, value: string) => {
     setQueryParams({ [key]: value, page: 1 });
-
-    if (value) {
-      setActiveFilters((prev) => ({ ...prev, [key]: value }));
-    } else {
-      const newFilters = { ...activeFilters };
-      delete newFilters[key];
-      setActiveFilters(newFilters);
-    }
   };
 
   // Remove a specific filter

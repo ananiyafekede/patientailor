@@ -1,7 +1,6 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 
 import { useSearchParams } from "react-router-dom";
-import { useEffect } from "react";
+import { useEffect, useCallback } from "react";
 
 interface QueryOptions {
   page?: number;
@@ -29,7 +28,7 @@ export function useQueryParams(initialParams: QueryOptions = {}) {
   }, []);
 
   // Get current query params as an object
-  const getQueryParams = (): Record<string, any> => {
+  const getQueryParams = useCallback((): Record<string, any> => {
     const params: Record<string, any> = {};
     searchParams.forEach((value, key) => {
       // Convert numeric strings to numbers
@@ -40,14 +39,14 @@ export function useQueryParams(initialParams: QueryOptions = {}) {
       }
     });
     return params;
-  };
+  }, [searchParams]);
 
   // Set query params (adds or updates)
-  const setQueryParams = (params: Record<string, any>) => {
+  const setQueryParams = useCallback((params: Record<string, any>) => {
     const currentParams = getQueryParams();
     const newParams = { ...currentParams, ...params };
 
-    // Remove any null or undefined values
+    // Remove any null, undefined, or empty string values
     Object.keys(newParams).forEach((key) => {
       if (
         newParams[key] === null ||
@@ -58,13 +57,13 @@ export function useQueryParams(initialParams: QueryOptions = {}) {
       }
     });
 
-    setSearchParams(newParams);
-  };
+    setSearchParams(new URLSearchParams(newParams as Record<string, string>));
+  }, [getQueryParams, setSearchParams]);
 
   // Reset all query params
-  const resetQueryParams = () => {
-    setSearchParams({});
-  };
+  const resetQueryParams = useCallback(() => {
+    setSearchParams(new URLSearchParams());
+  }, [setSearchParams]);
 
   return {
     queryParams: getQueryParams(),
