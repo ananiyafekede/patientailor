@@ -1,30 +1,31 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
-import { useState, useEffect } from 'react';
-import { useQueryParams } from '@/hooks/useQueryParams';
-import { DataTable } from './DataTable';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { 
-  Select, 
-  SelectContent, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
-} from '@/components/ui/select';
-import { 
-  Popover, 
-  PopoverContent, 
-  PopoverTrigger 
-} from '@/components/ui/popover';
+import { useState, useEffect } from "react";
+import { useQueryParams } from "@/hooks/useQueryParams";
+import { DataTable } from "./DataTable";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import {
   ChevronLeft,
   ChevronRight,
   Search,
   SlidersHorizontal,
-  X
-} from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
+  X,
+} from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
 
 interface Column {
   key: string;
@@ -65,16 +66,16 @@ export const DataTableWithFilters = ({
   title,
   isLoading = false,
   pagination,
-  searchFields = ['name'],
+  searchFields = ["name"],
   onQueryChange,
 }: DataTableWithFiltersProps) => {
   const { queryParams, setQueryParams, resetQueryParams } = useQueryParams({
     page: 1,
-    limit: 10
+    limit: 10,
   });
-  
+
   const [activeFilters, setActiveFilters] = useState<Record<string, any>>({});
-  
+
   // Notify parent component when query params change
   useEffect(() => {
     if (onQueryChange) {
@@ -84,10 +85,10 @@ export const DataTableWithFilters = ({
 
   // Handle search input change
   const handleSearch = (value: string) => {
-    setQueryParams({ 
+    setQueryParams({
       search: value || undefined,
-      searchFields: value ? searchFields.join(',') : undefined,
-      page: 1 // Reset to first page on new search
+      searchFields: value ? searchFields.join(",") : undefined,
+      page: 1, // Reset to first page on new search
     });
   };
 
@@ -95,7 +96,7 @@ export const DataTableWithFilters = ({
   const handleSort = (key: string) => {
     const currentSort = queryParams.sort;
     let newSort;
-    
+
     if (currentSort === key) {
       newSort = `-${key}`; // Descending
     } else if (currentSort === `-${key}`) {
@@ -103,16 +104,16 @@ export const DataTableWithFilters = ({
     } else {
       newSort = key; // Ascending
     }
-    
+
     setQueryParams({ sort: newSort });
   };
 
   // Handle filter change
   const handleFilter = (key: string, value: string) => {
     setQueryParams({ [key]: value, page: 1 });
-    
+
     if (value) {
-      setActiveFilters(prev => ({ ...prev, [key]: value }));
+      setActiveFilters((prev) => ({ ...prev, [key]: value }));
     } else {
       const newFilters = { ...activeFilters };
       delete newFilters[key];
@@ -125,7 +126,7 @@ export const DataTableWithFilters = ({
     const params: Record<string, any> = { page: 1 };
     params[key] = undefined;
     setQueryParams(params);
-    
+
     const newFilters = { ...activeFilters };
     delete newFilters[key];
     setActiveFilters(newFilters);
@@ -148,15 +149,15 @@ export const DataTableWithFilters = ({
   };
 
   // Prepare columns with sort handlers
-  const tableColumns = columns.map(column => ({
+  const tableColumns = columns.map((column) => ({
     ...column,
-    sortable: column.sortable 
-      ? { 
+    sortable: column.sortable
+      ? {
           isSorted: queryParams.sort === column.key,
           isSortedDesc: queryParams.sort === `-${column.key}`,
-          onSort: () => handleSort(column.key)
-        } 
-      : undefined
+          onSort: () => handleSort(column.key),
+        }
+      : undefined,
   }));
 
   return (
@@ -167,26 +168,26 @@ export const DataTableWithFilters = ({
             {title}
           </h1>
         )}
-        
+
         <div className="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
           <div className="relative flex-grow">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
             <Input
               placeholder="Search..."
-              value={queryParams.search || ''}
+              value={queryParams.search || ""}
               onChange={(e) => handleSearch(e.target.value)}
               className="pl-10"
             />
             {queryParams.search && (
-              <button 
+              <button
                 className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400"
-                onClick={() => handleSearch('')}
+                onClick={() => handleSearch("")}
               >
                 <X className="h-4 w-4" />
               </button>
             )}
           </div>
-          
+
           <Popover>
             <PopoverTrigger asChild>
               <Button variant="outline" size="icon">
@@ -197,37 +198,44 @@ export const DataTableWithFilters = ({
               <div className="space-y-4">
                 <h4 className="font-medium">Filters</h4>
                 <Separator />
-                
-                {columns.filter(col => col.filterable).map(column => (
-                  <div key={column.key} className="space-y-2">
-                    <label className="text-sm font-medium">
-                      {column.label}
-                    </label>
-                    <Select
-                      value={queryParams[column.key] || ''}
-                      onValueChange={(value) => handleFilter(column.key, value)}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select..." />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="">All</SelectItem>
-                        {column.filterOptions?.map(option => (
-                          <SelectItem key={option.value} value={option.value}>
-                            {option.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                ))}
-                
+
+                {columns
+                  .filter((col) => col.filterable)
+                  .map((column) => (
+                    <div key={column.key} className="space-y-2">
+                      <label className="text-sm font-medium">
+                        {column.label}
+                      </label>
+                      <Select
+                        value={queryParams[column.key] || ""}
+                        onValueChange={(value) =>
+                          handleFilter(column.key, value)
+                        }
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="">All</SelectItem>
+                          {column.filterOptions?.map((option) => (
+                            <SelectItem key={option.value} value={option.value}>
+                              {option.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  ))}
+
                 <Separator />
-                <Button 
-                  variant="outline" 
-                  size="sm" 
+                <Button
+                  variant="outline"
+                  size="sm"
                   onClick={clearAllFilters}
-                  disabled={Object.keys(activeFilters).length === 0 && !queryParams.search}
+                  disabled={
+                    Object.keys(activeFilters).length === 0 &&
+                    !queryParams.search
+                  }
                 >
                   Reset all filters
                 </Button>
@@ -236,7 +244,7 @@ export const DataTableWithFilters = ({
           </Popover>
         </div>
       </div>
-      
+
       {/* Active filters display */}
       {(Object.keys(activeFilters).length > 0 || queryParams.search) && (
         <div className="flex flex-wrap gap-2 items-center">
@@ -244,34 +252,43 @@ export const DataTableWithFilters = ({
           {queryParams.search && (
             <Badge variant="outline" className="flex items-center gap-1">
               Search: {queryParams.search}
-              <button onClick={() => handleSearch('')}>
+              <button onClick={() => handleSearch("")}>
                 <X className="h-3 w-3" />
               </button>
             </Badge>
           )}
           {Object.entries(activeFilters).map(([key, value]) => (
-            <Badge key={key} variant="outline" className="flex items-center gap-1">
-              {columns.find(col => col.key === key)?.label}: {value}
+            <Badge
+              key={key}
+              variant="outline"
+              className="flex items-center gap-1"
+            >
+              {columns.find((col) => col.key === key)?.label}: {value}
               <button onClick={() => removeFilter(key)}>
                 <X className="h-3 w-3" />
               </button>
             </Badge>
           ))}
           {(Object.keys(activeFilters).length > 0 || queryParams.search) && (
-            <Button variant="ghost" size="sm" onClick={clearAllFilters} className="h-7 px-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={clearAllFilters}
+              className="h-7 px-2"
+            >
               Clear all
             </Button>
           )}
         </div>
       )}
 
-      <DataTable 
-        data={data} 
+      <DataTable
+        data={data}
         columns={tableColumns}
         actions={actions}
         searchable={false} // Disable built-in search as we're using our custom one
       />
-      
+
       {pagination && pagination.totalPages > 1 && (
         <div className="flex items-center justify-between pt-4">
           <div className="flex items-center space-x-2">
@@ -293,14 +310,17 @@ export const DataTableWithFilters = ({
                 <SelectItem value="100">100</SelectItem>
               </SelectContent>
             </Select>
-            
+
             <span className="text-sm text-muted-foreground">
-              {pagination.total > 0 
-                ? `${(pagination.page - 1) * pagination.limit + 1}-${Math.min(pagination.page * pagination.limit, pagination.total)} of ${pagination.total}`
-                : 'No items'}
+              {pagination.total > 0
+                ? `${(pagination.page - 1) * pagination.limit + 1}-${Math.min(
+                    pagination.page * pagination.limit,
+                    pagination.total
+                  )} of ${pagination.total}`
+                : "No items"}
             </span>
           </div>
-          
+
           <div className="flex items-center space-x-2">
             <Button
               variant="outline"

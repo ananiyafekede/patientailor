@@ -1,4 +1,3 @@
-
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 import { useEffect } from "react";
@@ -15,15 +14,15 @@ const PatientsList = () => {
   const { queryParams, setQueryParams } = useQueryParams({
     page: 1,
     limit: 10,
-    sort: "first_name"
+    sort: "first_name",
   });
 
-  const { 
-    patients = [], 
-    isLoading, 
-    error, 
-    pagination, 
-    refetch 
+  const {
+    patients = [],
+    isLoading,
+    error,
+    pagination,
+    refetch,
   } = useGetDoctorPatients(queryParams);
 
   // Helper functions for patient data display
@@ -38,32 +37,27 @@ const PatientsList = () => {
 
   // Define columns for the data table
   const columns = [
-    { 
-      key: "first_name", 
-      label: "First Name", 
-      sortable: true 
+    {
+      key: "first_name",
+      label: "First Name",
+      sortable: true,
     },
-    { 
-      key: "last_name", 
-      label: "Last Name", 
-      sortable: true 
+    {
+      key: "last_name",
+      label: "Last Name",
+      sortable: true,
     },
-    { 
-      key: "date_of_birth", 
+    {
+      key: "date_of_birth",
       label: "Date of Birth",
       sortable: true,
-      render: (patient: any) => formatDate(patient.date_of_birth)
+      render: (patient: any) => formatDate(patient.date_of_birth),
     },
-    { 
-      key: "email", 
-      label: "Email",
-      sortable: true
-    },
-    { 
-      key: "address", 
+    {
+      key: "address",
       label: "Address",
-      sortable: false
-    }
+      sortable: false,
+    },
   ];
 
   // Define actions for each patient row
@@ -74,8 +68,8 @@ const PatientsList = () => {
       onClick: (patient: any) => {
         // Handle viewing patient details
         console.log("View patient details", patient);
-      }
-    }
+      },
+    },
   ];
 
   // Handle query parameter changes
@@ -116,10 +110,6 @@ const PatientsList = () => {
                 <div className="text-sm text-muted-foreground">Address:</div>
                 <div className="text-sm">{patient.address || "N/A"}</div>
               </div>
-              <div className="grid grid-cols-2 gap-1">
-                <div className="text-sm text-muted-foreground">Email:</div>
-                <div className="text-sm">{patient.email || "N/A"}</div>
-              </div>
             </div>
           </CardContent>
         </Card>
@@ -137,7 +127,7 @@ const PatientsList = () => {
 
   return (
     <div className="space-y-4">
-      <DataTableWithFilters 
+      <DataTableWithFilters
         title="Patients"
         data={patients}
         columns={columns}

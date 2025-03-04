@@ -1,6 +1,7 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
-import { useSearchParams } from 'react-router-dom';
-import { useEffect } from 'react';
+import { useSearchParams } from "react-router-dom";
+import { useEffect } from "react";
 
 interface QueryOptions {
   page?: number;
@@ -17,9 +18,12 @@ export function useQueryParams(initialParams: QueryOptions = {}) {
   // Set initial params on first render
   useEffect(() => {
     const currentParams = Object.fromEntries(searchParams.entries());
-    
+
     // Only set initial params if they don't already exist in URL
-    if (Object.keys(currentParams).length === 0 && Object.keys(initialParams).length > 0) {
+    if (
+      Object.keys(currentParams).length === 0 &&
+      Object.keys(initialParams).length > 0
+    ) {
       setQueryParams(initialParams);
     }
   }, []);
@@ -29,7 +33,7 @@ export function useQueryParams(initialParams: QueryOptions = {}) {
     const params: Record<string, any> = {};
     searchParams.forEach((value, key) => {
       // Convert numeric strings to numbers
-      if (!isNaN(Number(value)) && value !== '') {
+      if (!isNaN(Number(value)) && value !== "") {
         params[key] = Number(value);
       } else {
         params[key] = value;
@@ -42,14 +46,18 @@ export function useQueryParams(initialParams: QueryOptions = {}) {
   const setQueryParams = (params: Record<string, any>) => {
     const currentParams = getQueryParams();
     const newParams = { ...currentParams, ...params };
-    
+
     // Remove any null or undefined values
-    Object.keys(newParams).forEach(key => {
-      if (newParams[key] === null || newParams[key] === undefined || newParams[key] === '') {
+    Object.keys(newParams).forEach((key) => {
+      if (
+        newParams[key] === null ||
+        newParams[key] === undefined ||
+        newParams[key] === ""
+      ) {
         delete newParams[key];
       }
     });
-    
+
     setSearchParams(newParams);
   };
 
@@ -61,6 +69,6 @@ export function useQueryParams(initialParams: QueryOptions = {}) {
   return {
     queryParams: getQueryParams(),
     setQueryParams,
-    resetQueryParams
+    resetQueryParams,
   };
 }
