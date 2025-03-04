@@ -1,3 +1,4 @@
+
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 import { getDoctorAppointments } from "@/api/doctor";
@@ -7,6 +8,7 @@ function useGetDoctorAppointment(queryParams?: Record<string, any>) {
   const { isLoading, data, error, refetch } = useQuery({
     queryKey: ["doctor-appointments", queryParams],
     queryFn: () => getDoctorAppointments(queryParams),
+    keepPreviousData: true, // Keep previous data while loading new data
   });
 
   return {

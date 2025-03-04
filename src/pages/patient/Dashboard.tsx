@@ -1,3 +1,4 @@
+
 import { Suspense, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
@@ -9,7 +10,7 @@ import AppointmentList from "@/components/patient/AppointmentList";
 import BookAppointment from "@/components/patient/BookAppointment";
 import MedicalHistory from "@/components/patient/MedicalHistory";
 import ProfileSettings from "@/components/patient/ProfileSettings";
-import BillingHistory from "@/components/patient/BillingHistory";
+import { BillingHistory } from "@/components/patient/BillingHistory";
 import FeedbackForm from "@/components/patient/FeedbackForm";
 import { Button } from "@/components/ui/button";
 import {
