@@ -1,4 +1,5 @@
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { getDoctorAppointments } from "@/api/doctor";
 import { useQuery } from "@tanstack/react-query";
 
@@ -12,7 +13,7 @@ function useGetDoctorAppointment(queryParams?: Record<string, any>) {
   return {
     isLoading,
     appointments: data?.appointments || [],
-    pagination: data?.pagination,
+    pagination: data?.pagination || {},
     error,
     refetch,
   };

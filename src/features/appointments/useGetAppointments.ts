@@ -8,13 +8,13 @@ function useGetAppointments(queryParams?: Record<string, any>) {
   const { isLoading, data, error, refetch } = useQuery({
     queryKey: ["appointments", queryParams],
     queryFn: () => getAppointments(queryParams),
-    keepPreviousData: true, // Keep previous data while loading new data
+    placeholderData: (previousData) => previousData, // This replaces keepPreviousData
   });
 
   return {
     isLoading,
     appointments: data?.appointments || [],
-    pagination: data?.pagination,
+    pagination: data?.pagination || {},
     error,
     refetch
   };

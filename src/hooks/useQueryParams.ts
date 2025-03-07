@@ -1,3 +1,4 @@
+
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useSearchParams } from "react-router-dom";
 import { useEffect, useCallback } from "react";
@@ -9,6 +10,7 @@ interface QueryOptions {
   search?: string;
   searchFields?: string;
   _tab?: string;
+  _appointment_view?: string;
   [key: string]: any;
 }
 
@@ -26,7 +28,7 @@ export function useQueryParams(initialParams: QueryOptions = {}) {
     return params;
   }, [searchParams]);
 
-  // Function to update query params, excluding _tab for API queries
+  // Function to update query params
   const setQueryParams = useCallback(
     (params: Record<string, any>) => {
       const currentParams = getQueryParams();
@@ -56,10 +58,12 @@ export function useQueryParams(initialParams: QueryOptions = {}) {
     }
   }, [setQueryParams, searchParams, initialParams]);
 
-  // Function to get query params excluding _tab for backend requests
+  // Function to get query params excluding UI-specific params for backend requests
   const getFilteredQueryParams = useCallback(() => {
     const filteredParams = { ...getQueryParams() };
-    delete filteredParams._tab; // Exclude _tab from backend queries
+    // Exclude UI-specific params from backend queries
+    delete filteredParams._tab;
+    delete filteredParams._appointment_view;
     return filteredParams;
   }, [getQueryParams]);
 
@@ -67,6 +71,6 @@ export function useQueryParams(initialParams: QueryOptions = {}) {
     queryParams: getQueryParams(),
     setQueryParams,
     resetQueryParams,
-    getFilteredQueryParams, // Use this for API requests
+    getFilteredQueryParams,
   };
 }

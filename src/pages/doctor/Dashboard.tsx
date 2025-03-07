@@ -1,3 +1,4 @@
+
 import { Helmet } from "react-helmet-async";
 import { Spinner } from "@/components/ui/spinner";
 import AppointmentList from "@/components/doctor/AppointmentList";
@@ -49,11 +50,12 @@ const DoctorDashboard = () => {
     error: detailError,
   } = useGetDoctorById(doctorProfile.id);
 
+  // Only fetch appointments data for metrics, using minimal query params
   const {
     appointments,
     isLoading: isLoadingAppointments,
     error: appointmentsError,
-  } = useGetDoctorAppointment();
+  } = useGetDoctorAppointment({ limit: 100 });
 
   const {
     patients,
@@ -106,7 +108,9 @@ const DoctorDashboard = () => {
 
       <div className="container mx-auto p-6 space-y-6 bg-gray-50 min-h-screen">
         {isLoadingDetail ? (
-          <p>Loading...</p>
+          <div className="flex justify-center py-12">
+            <Spinner />
+          </div>
         ) : (
           <DashboardHeader
             username={doctorProfile.username}
@@ -147,12 +151,18 @@ const DoctorDashboard = () => {
 
             <TabsContent value="appointments">
               <h2 className="text-xl font-semibold mb-4">Appointments</h2>
-              {isLoadingAppointments ? <p>Loading...</p> : <AppointmentList />}
+              <AppointmentList />
             </TabsContent>
 
             <TabsContent value="patients">
               <h2 className="text-xl font-semibold mb-4">My Patients</h2>
-              {isLoadingPatients ? <p>Loading...</p> : <PatientsList />}
+              {isLoadingPatients ? (
+                <div className="flex justify-center py-12">
+                  <Spinner />
+                </div>
+              ) : (
+                <PatientsList />
+              )}
             </TabsContent>
           </Tabs>
         </div>
