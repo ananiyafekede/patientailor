@@ -15,6 +15,7 @@ import {
 } from "@/hooks/doctor";
 import { toast } from "react-hot-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useQueryParams } from "@/hooks/useQueryParams";
 
 const revenueData = [
   { name: "Mon", income: 3200, expense: 1700 },
@@ -32,20 +33,28 @@ const DoctorDashboard = () => {
   const [completedToday, setCompletedToday] = useState(0);
   const { user: doctorProfile } = useAuth();
 
+  // Manage query params for tab switching
+  const { setQueryParams, queryParams } = useQueryParams({
+    _tab: "appointments",
+  });
+  const currentTab = queryParams._tab || "appointments";
+
+  const handleTabChange = (tab: string) => {
+    setQueryParams({ _tab: tab });
+  };
+
   const {
     doctor: detail,
     isLoading: isLoadingDetail,
     error: detailError,
   } = useGetDoctorById(doctorProfile.id);
 
-  // Fetch appointments
   const {
     appointments,
     isLoading: isLoadingAppointments,
     error: appointmentsError,
   } = useGetDoctorAppointment();
 
-  // Fetch patients
   const {
     patients,
     isLoading: isLoadingPatients,
@@ -54,16 +63,13 @@ const DoctorDashboard = () => {
 
   useEffect(() => {
     if (appointments?.length) {
-      // Get today's date in YYYY-MM-DD format
       const today = new Date().toISOString().split("T")[0];
 
-      // Count today's appointments
       const todayAppts = appointments.filter(
         (appt) => appt.appointment_date === today
       );
       setTodayAppointments(todayAppts.length);
 
-      // Count completed appointments
       const completed = todayAppts.filter(
         (appt) => appt.status === "completed"
       );
@@ -78,30 +84,19 @@ const DoctorDashboard = () => {
   }, [patients]);
 
   useEffect(() => {
-    // Show errors if any
     if (detailError) {
       toast.error("Failed to load doctor details");
       console.error(detailError);
     }
-
     if (appointmentsError) {
       toast.error("Failed to load appointments");
       console.error(appointmentsError);
     }
-
     if (patientsError) {
       toast.error("Failed to load patients");
       console.error(patientsError);
     }
   }, [detailError, appointmentsError, patientsError]);
-
-  // if (isLoading) {
-  //   return (
-  //     <div className="flex items-center justify-center min-h-screen">
-  //       <Spinner />
-  //     </div>
-  //   );
-  // }
 
   return (
     <>
@@ -140,7 +135,11 @@ const DoctorDashboard = () => {
         </div>
 
         <div className="mt-6 bg-white rounded-lg shadow-md p-6">
-          <Tabs defaultValue="appointments" className="space-y-4">
+          <Tabs
+            value={currentTab}
+            onValueChange={handleTabChange}
+            className="space-y-4"
+          >
             <TabsList>
               <TabsTrigger value="appointments">Appointments</TabsTrigger>
               <TabsTrigger value="patients">Patients</TabsTrigger>
@@ -148,12 +147,12 @@ const DoctorDashboard = () => {
 
             <TabsContent value="appointments">
               <h2 className="text-xl font-semibold mb-4">Appointments</h2>
-              {isLoadingAppointments ? <p>loading...</p> : <AppointmentList />}
+              {isLoadingAppointments ? <p>Loading...</p> : <AppointmentList />}
             </TabsContent>
 
             <TabsContent value="patients">
               <h2 className="text-xl font-semibold mb-4">My Patients</h2>
-              {isLoadingPatients ? <p>loading...</p> : <PatientsList />}
+              {isLoadingPatients ? <p>Loading...</p> : <PatientsList />}
             </TabsContent>
           </Tabs>
         </div>

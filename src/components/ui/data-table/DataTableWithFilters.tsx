@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-
 import { useState, useEffect } from "react";
 import { useQueryParams } from "@/hooks/useQueryParams";
 import { DataTable } from "./DataTable";
@@ -89,7 +88,7 @@ export const DataTableWithFilters = ({
     setQueryParams({
       search: value || undefined,
       searchFields: value ? searchFields.join(",") : undefined,
-      page: 1, // Reset to first page on new search
+      page: 1,
     });
   };
 
@@ -99,11 +98,11 @@ export const DataTableWithFilters = ({
     let newSort;
 
     if (currentSort === key) {
-      newSort = `-${key}`; // Descending
-    } else if (currentSort === `-${key}`) {
-      newSort = undefined; // Remove sort
+      newSort = `${key}`;
+    } else if (currentSort === `${key}`) {
+      newSort = undefined;
     } else {
-      newSort = key; // Ascending
+      newSort = key;
     }
 
     setQueryParams({ sort: newSort, page: 1 });

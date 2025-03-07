@@ -1,4 +1,4 @@
-
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useSearchParams } from "react-router-dom";
 import { useEffect, useCallback } from "react";
 
@@ -8,66 +8,65 @@ interface QueryOptions {
   sort?: string;
   search?: string;
   searchFields?: string;
+  _tab?: string;
   [key: string]: any;
 }
 
 export function useQueryParams(initialParams: QueryOptions = {}) {
   const [searchParams, setSearchParams] = useSearchParams();
 
-  // Set initial params on first render
-  useEffect(() => {
-    const currentParams = Object.fromEntries(searchParams.entries());
-
-    // Only set initial params if they don't already exist in URL
-    if (
-      Object.keys(currentParams).length === 0 &&
-      Object.keys(initialParams).length > 0
-    ) {
-      setQueryParams(initialParams);
-    }
-  }, []);
-
-  // Get current query params as an object
+  // Function to get current query params as an object
   const getQueryParams = useCallback((): Record<string, any> => {
     const params: Record<string, any> = {};
     searchParams.forEach((value, key) => {
-      // Convert numeric strings to numbers
-      if (!isNaN(Number(value)) && value !== "") {
-        params[key] = Number(value);
-      } else {
-        params[key] = value;
-      }
+      // Convert numeric values
+      params[key] =
+        !isNaN(Number(value)) && value !== "" ? Number(value) : value;
     });
     return params;
   }, [searchParams]);
 
-  // Set query params (adds or updates)
-  const setQueryParams = useCallback((params: Record<string, any>) => {
-    const currentParams = getQueryParams();
-    const newParams = { ...currentParams, ...params };
+  // Function to update query params, excluding _tab for API queries
+  const setQueryParams = useCallback(
+    (params: Record<string, any>) => {
+      const currentParams = getQueryParams();
+      const newParams = { ...currentParams, ...params };
 
-    // Remove any null, undefined, or empty string values
-    Object.keys(newParams).forEach((key) => {
-      if (
-        newParams[key] === null ||
-        newParams[key] === undefined ||
-        newParams[key] === ""
-      ) {
-        delete newParams[key];
-      }
-    });
+      // Remove empty values
+      Object.keys(newParams).forEach((key) => {
+        if (!newParams[key] && newParams[key] !== 0) {
+          delete newParams[key];
+        }
+      });
 
-    setSearchParams(new URLSearchParams(newParams as Record<string, string>));
-  }, [getQueryParams, setSearchParams]);
+      setSearchParams(new URLSearchParams(newParams as Record<string, string>));
+    },
+    [getQueryParams, setSearchParams]
+  );
 
-  // Reset all query params
+  // Function to reset all query params
   const resetQueryParams = useCallback(() => {
     setSearchParams(new URLSearchParams());
   }, [setSearchParams]);
+
+  // Set initial params on first render if missing in URL
+  useEffect(() => {
+    if (!searchParams.toString()) {
+      setQueryParams(initialParams);
+    }
+  }, [setQueryParams, searchParams, initialParams]);
+
+  // Function to get query params excluding _tab for backend requests
+  const getFilteredQueryParams = useCallback(() => {
+    const filteredParams = { ...getQueryParams() };
+    delete filteredParams._tab; // Exclude _tab from backend queries
+    return filteredParams;
+  }, [getQueryParams]);
 
   return {
     queryParams: getQueryParams(),
     setQueryParams,
     resetQueryParams,
+    getFilteredQueryParams, // Use this for API requests
   };
 }

@@ -7,35 +7,37 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Spinner } from "@/components/ui/spinner";
 import { format } from "date-fns";
-import toast from "react-hot-toast";
 import { Calendar, Check, Clock, User } from "lucide-react";
 import PrescriptionForm from "./PrescriptionForm";
 import { useUpdateAppointmentStatus } from "@/hooks/appointment";
 import { useQueryParams } from "@/hooks/useQueryParams";
-import {
-  Alert,
-  AlertDescription,
-  AlertTitle,
-} from "@/components/ui/alert";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 const AppointmentList = () => {
-  const [filter, setFilter] = useState<"upcoming" | "all" | "completed">("upcoming");
-  const { queryParams, setQueryParams } = useQueryParams({
-    page: 1,
-    limit: 10,
-    sort: "-appointment_date",
-  });
-
+  const [filter, setFilter] = useState<"upcoming" | "all" | "completed">(
+    "upcoming"
+  );
+  const { queryParams, setQueryParams, getFilteredQueryParams } =
+    useQueryParams({
+      page: 1,
+      limit: 1,
+      sort: "appointment_date",
+      _tab: "appointments",
+    });
   const {
     appointments = [],
     isLoading,
     error,
     pagination,
     refetch,
-  } = useGetDoctorAppointment(queryParams);
+  } = useGetDoctorAppointment(getFilteredQueryParams());
 
-  const { mutate: updateStatus, isPending: isUpdatingStatus } = useUpdateAppointmentStatus();
+  const { mutate: updateStatus, isPending: isUpdatingStatus } =
+    useUpdateAppointmentStatus();
 
+  useEffect(() => {
+    setQueryParams({ _tab: "appointments" });
+  }, []);
   useEffect(() => {
     if (appointments?.length) {
       let filtered = [...appointments];
@@ -156,15 +158,17 @@ const AppointmentList = () => {
                     </div>
 
                     <div className="flex flex-col space-y-1">
-                      <div className="text-sm text-muted-foreground">Status</div>
+                      <div className="text-sm text-muted-foreground">
+                        Status
+                      </div>
                       <Badge
                         className="w-fit"
                         variant={
                           appointment.status === "completed"
                             ? "default"
                             : appointment.status === "cancelled"
-                              ? "destructive"
-                              : "outline"
+                            ? "destructive"
+                            : "outline"
                         }
                       >
                         {appointment.status}
@@ -205,15 +209,17 @@ const AppointmentList = () => {
                   </div>
                 </CardContent>
               </Card>
-            ))
-            }
+            ))}
 
             {pagination && pagination.totalPages > 1 && (
               <div className="flex items-center justify-between pt-4">
                 <div className="text-sm text-muted-foreground">
-                  Showing {((pagination.page - 1) * pagination.limit) + 1} to{" "}
-                  {Math.min(pagination.page * pagination.limit, pagination.total)} of{" "}
-                  {pagination.total} appointments
+                  Showing {(pagination.page - 1) * pagination.limit + 1} to{" "}
+                  {Math.min(
+                    pagination.page * pagination.limit,
+                    pagination.total
+                  )}{" "}
+                  of {pagination.total} appointments
                 </div>
                 <div className="flex space-x-2">
                   <Button
@@ -228,7 +234,9 @@ const AppointmentList = () => {
                     variant="outline"
                     size="sm"
                     onClick={() => handlePageChange(pagination.page + 1)}
-                    disabled={pagination.page >= pagination.totalPages || isLoading}
+                    disabled={
+                      pagination.page >= pagination.totalPages || isLoading
+                    }
                   >
                     Next
                   </Button>
