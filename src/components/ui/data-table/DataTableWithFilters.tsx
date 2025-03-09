@@ -1,3 +1,4 @@
+
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState, useEffect } from "react";
 import { useQueryParams } from "@/hooks/useQueryParams";
@@ -36,7 +37,8 @@ interface Column {
   render?: (item: any) => React.ReactNode;
 }
 
-interface SortableColumn extends Column {
+// Use a separate type for columns after they have been prepared with sort handlers
+interface PreparedColumn extends Column {
   sortable?: boolean | {
     isSorted: boolean;
     isSortedDesc: boolean;
@@ -73,7 +75,7 @@ export const DataTableWithFilters = ({
   searchFields = ["name"],
   onQueryChange,
 }: DataTableWithFiltersProps) => {
-  const { queryParams, setQueryParams, resetQueryParams } = useQueryParams({
+  const { queryParams, setQueryParams } = useQueryParams({
     page: 1,
     limit: 10,
   });
@@ -173,7 +175,7 @@ export const DataTableWithFilters = ({
   };
 
   // Prepare columns with sort handlers
-  const tableColumns = columns.map((column) => {
+  const tableColumns: PreparedColumn[] = columns.map((column) => {
     if (column.sortable) {
       const isSorted = queryParams.sort === column.key;
       const isSortedDesc = queryParams.sort === `-${column.key}`;

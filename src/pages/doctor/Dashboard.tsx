@@ -1,4 +1,3 @@
-
 import { Helmet } from "react-helmet-async";
 import { Spinner } from "@/components/ui/spinner";
 import AppointmentList from "@/components/doctor/AppointmentList";
@@ -42,7 +41,7 @@ const DoctorDashboard = () => {
 
   const handleTabChange = (tab: string) => {
     // When changing tabs, reset tab-specific URL parameters
-    const updatedParams = { _tab: tab };
+    const updatedParams: Record<string, any> = { _tab: tab };
     
     // Clear appointment view when switching away from appointments tab
     if (tab !== "appointments") {

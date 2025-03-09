@@ -1,3 +1,4 @@
+
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useGetDoctorPatients } from "@/hooks/doctor";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -25,8 +26,12 @@ const PatientsList = () => {
   } = useGetDoctorPatients(getFilteredQueryParams());
 
   useEffect(() => {
-    setQueryParams({ _tab: "patients" });
-  }, []);
+    // Make sure _appointment_view is cleared when in patients tab
+    setQueryParams({ 
+      _tab: "patients",
+      _appointment_view: undefined
+    });
+  }, [setQueryParams]);
 
   // Format date for better display
   const formatDate = (date?: string) => {
@@ -75,7 +80,7 @@ const PatientsList = () => {
           columns={columns}
           actions={actions}
           isLoading={isLoading}
-          pagination={pagination}
+          pagination={pagination || { page: 1, limit: 10, total: 0, totalPages: 0 }}
           searchFields={["first_name", "last_name", "email"]}
           onQueryChange={handleQueryChange}
         />
