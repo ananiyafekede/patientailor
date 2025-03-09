@@ -141,7 +141,6 @@ export async function getDoctorAppointments(
         params.append(key, value);
       });
     }
-
     const res = await api.get(`/doctors/appointments?${params.toString()}`);
     return res.data.data;
   } catch (error) {

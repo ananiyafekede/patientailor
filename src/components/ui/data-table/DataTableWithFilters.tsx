@@ -25,6 +25,7 @@ import {
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { Pagination } from "@/types";
 
 interface Column {
   key: string;
@@ -39,13 +40,6 @@ interface Action {
   label: string;
   icon: React.ReactNode;
   onClick: (item: any) => void;
-}
-
-export interface Pagination {
-  total: number;
-  limit: number;
-  page: number;
-  totalPages: number;
 }
 
 interface DataTableWithFiltersProps {
