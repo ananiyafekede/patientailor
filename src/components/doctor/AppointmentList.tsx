@@ -1,6 +1,5 @@
-
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import { useGetDoctorAppointment } from "@/hooks/doctor";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -12,6 +11,7 @@ import { useUpdateAppointmentStatus } from "@/hooks/appointment";
 import { useQueryParams } from "@/hooks/useQueryParams";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { DataTableWithFilters } from "@/components/ui/data-table/DataTableWithFilters";
+import { Appointment } from "@/types";
 
 const AppointmentList = () => {
   const { queryParams, setQueryParams, getFilteredQueryParams } =
@@ -25,10 +25,10 @@ const AppointmentList = () => {
   useEffect(() => {
     // Only update if the current tab isn't already set to appointments
     if (queryParams._tab !== "appointments") {
-      setQueryParams({ 
+      setQueryParams({
         _tab: "appointments",
         // Default appointment view if none is specified
-        _appointment_view: queryParams._appointment_view || "all"
+        _appointment_view: queryParams._appointment_view || "all",
       });
     }
   }, []); // Empty dependency array ensures this only runs once on mount
@@ -101,9 +101,9 @@ const AppointmentList = () => {
       key: "patient",
       label: "Patient",
       sortable: false,
-      render: (appointment: any) =>
-        appointment.patient
-          ? `${appointment.patient.first_name} ${appointment.patient.last_name}`
+      render: (appointment: Appointment) =>
+        appointment.Patient
+          ? `${appointment.Patient.first_name} ${appointment.Patient.last_name}`
           : "N/A",
     },
     {
@@ -177,7 +177,7 @@ const AppointmentList = () => {
     const hasChanges = Object.entries(newParams).some(
       ([key, value]) => queryParams[key] !== value
     );
-    
+
     if (hasChanges) {
       setQueryParams(newParams);
     }
@@ -224,8 +224,10 @@ const AppointmentList = () => {
         columns={columns}
         actions={actions}
         isLoading={isLoading}
-        pagination={pagination || { page: 1, limit: 10, total: 0, totalPages: 0 }}
-        searchFields={["notes", "patient.first_name", "patient.last_name"]}
+        pagination={
+          pagination || { page: 1, limit: 10, total: 0, totalPages: 0 }
+        }
+        searchFields={["notes"]}
         onQueryChange={handleQueryChange}
       />
     </div>

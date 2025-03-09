@@ -39,7 +39,7 @@ export interface Schedule {
 
 export interface Appointment {
   id: number;
-  patient: Patient;
+  Patient: Patient;
   Doctor: Doctor;
   schedule_id?: number | null;
   appointment_date: string;
