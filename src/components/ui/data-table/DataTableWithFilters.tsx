@@ -1,6 +1,5 @@
-
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useQueryParams } from "@/hooks/useQueryParams";
 import { DataTable } from "./DataTable";
 import { Button } from "@/components/ui/button";
@@ -37,8 +36,8 @@ interface Column {
   render?: (item: any) => React.ReactNode;
 }
 
-// Use a separate type for columns after they have been prepared with sort handlers
-interface PreparedColumn extends Column {
+// Use a custom type for columns after they have been prepared with sort handlers
+interface PreparedColumn extends Omit<Column, 'sortable'> {
   sortable?: boolean | {
     isSorted: boolean;
     isSortedDesc: boolean;
@@ -82,8 +81,9 @@ export const DataTableWithFilters = ({
 
   const [activeFilters, setActiveFilters] = useState<Record<string, any>>({});
   const [searchValue, setSearchValue] = useState(queryParams.search || "");
+  const [prevQueryParams, setPrevQueryParams] = useState(queryParams);
 
-  // Initialize active filters from URL on component mount
+  // Initialize active filters from URL on component mount (only once)
   useEffect(() => {
     const filters: Record<string, any> = {};
     columns.forEach(column => {
@@ -93,30 +93,41 @@ export const DataTableWithFilters = ({
     });
     setActiveFilters(filters);
     setSearchValue(queryParams.search || "");
-  }, [columns, queryParams]);
+  }, []); // Empty dependency array ensures this only runs once
 
-  // Notify parent component when query params change
+  // Notify parent component when query params change, but prevent infinite loop
   useEffect(() => {
-    if (onQueryChange) {
+    // Check if queryParams actually changed to prevent infinite updates
+    const hasChanged = Object.entries(queryParams).some(
+      ([key, value]) => prevQueryParams[key] !== value
+    ) || 
+    Object.entries(prevQueryParams).some(
+      ([key, value]) => queryParams[key] !== value
+    );
+    
+    if (hasChanged && onQueryChange) {
+      setPrevQueryParams(queryParams);
       onQueryChange(queryParams);
     }
-  }, [queryParams, onQueryChange]);
+  }, [queryParams, onQueryChange, prevQueryParams]);
 
   // Handle search input change with debounce
-  const handleSearch = (value: string) => {
+  const handleSearch = useCallback((value: string) => {
     setSearchValue(value);
     const timer = setTimeout(() => {
-      setQueryParams({
-        search: value || undefined,
-        searchFields: value ? searchFields.join(",") : undefined,
-        page: 1,
-      });
+      if (value !== queryParams.search) {
+        setQueryParams({
+          search: value || undefined,
+          searchFields: value ? searchFields.join(",") : undefined,
+          page: 1,
+        });
+      }
     }, 500);
     return () => clearTimeout(timer);
-  };
+  }, [queryParams.search, searchFields, setQueryParams]);
 
   // Handle sort change
-  const handleSort = (key: string) => {
+  const handleSort = useCallback((key: string) => {
     const currentSort = queryParams.sort;
     let newSort;
 
@@ -128,53 +139,69 @@ export const DataTableWithFilters = ({
       newSort = key;
     }
 
-    setQueryParams({ sort: newSort, page: 1 });
-  };
+    // Only update if there's an actual change
+    if (newSort !== currentSort) {
+      setQueryParams({ sort: newSort, page: 1 });
+    }
+  }, [queryParams.sort, setQueryParams]);
 
   // Handle filter change
-  const handleFilter = (key: string, value: string) => {
-    if (value) {
-      setActiveFilters(prev => ({ ...prev, [key]: value }));
-    } else {
+  const handleFilter = useCallback((key: string, value: string) => {
+    // Only update if the value actually changed
+    if (activeFilters[key] !== value) {
+      if (value) {
+        setActiveFilters(prev => ({ ...prev, [key]: value }));
+      } else {
+        const newFilters = { ...activeFilters };
+        delete newFilters[key];
+        setActiveFilters(newFilters);
+      }
+      
+      setQueryParams({ [key]: value || undefined, page: 1 });
+    }
+  }, [activeFilters, setQueryParams]);
+
+  // Remove a specific filter
+  const removeFilter = useCallback((key: string) => {
+    if (activeFilters[key]) {
       const newFilters = { ...activeFilters };
       delete newFilters[key];
       setActiveFilters(newFilters);
+      
+      const params: Record<string, any> = { page: 1 };
+      params[key] = undefined;
+      setQueryParams(params);
     }
-    
-    setQueryParams({ [key]: value || undefined, page: 1 });
-  };
-
-  // Remove a specific filter
-  const removeFilter = (key: string) => {
-    const newFilters = { ...activeFilters };
-    delete newFilters[key];
-    setActiveFilters(newFilters);
-    
-    const params: Record<string, any> = { page: 1 };
-    params[key] = undefined;
-    setQueryParams(params);
-  };
+  }, [activeFilters, setQueryParams]);
 
   // Clear all filters
-  const clearAllFilters = () => {
-    setActiveFilters({});
-    setSearchValue("");
-    
-    // Keep only pagination and essential params
-    const essentialParams = { page: 1, limit: queryParams.limit };
-    setQueryParams(essentialParams);
-  };
+  const clearAllFilters = useCallback(() => {
+    // Only perform this operation if there are filters to clear
+    if (Object.keys(activeFilters).length > 0 || searchValue) {
+      setActiveFilters({});
+      setSearchValue("");
+      
+      // Keep only pagination and essential params
+      const essentialParams = { page: 1, limit: queryParams.limit };
+      setQueryParams(essentialParams);
+    }
+  }, [activeFilters, queryParams.limit, searchValue, setQueryParams]);
 
   // Pagination handling
-  const handlePageChange = (newPage: number) => {
-    setQueryParams({ page: newPage });
-  };
+  const handlePageChange = useCallback((newPage: number) => {
+    if (newPage !== queryParams.page) {
+      setQueryParams({ page: newPage });
+    }
+  }, [queryParams.page, setQueryParams]);
 
-  const handleLimitChange = (newLimit: string) => {
-    setQueryParams({ limit: parseInt(newLimit), page: 1 });
-  };
+  const handleLimitChange = useCallback((newLimit: string) => {
+    const parsedLimit = parseInt(newLimit);
+    if (parsedLimit !== queryParams.limit) {
+      setQueryParams({ limit: parsedLimit, page: 1 });
+    }
+  }, [queryParams.limit, setQueryParams]);
 
-  // Prepare columns with sort handlers
+  // Prepare columns with sort handlers - memoize this to prevent recreating on every render
   const tableColumns: PreparedColumn[] = columns.map((column) => {
     if (column.sortable) {
       const isSorted = queryParams.sort === column.key;
@@ -317,7 +344,7 @@ export const DataTableWithFilters = ({
 
       <DataTable
         data={data}
-        columns={tableColumns as any}
+        columns={tableColumns}
         actions={actions}
         searchable={false} // Disable built-in search as we're using our custom one
       />

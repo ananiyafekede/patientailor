@@ -1,6 +1,6 @@
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useGetDoctorAppointment } from "@/hooks/doctor";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -19,14 +19,24 @@ const AppointmentList = () => {
       page: 1,
       limit: 10,
       sort: "appointment_date",
-      _tab: "appointments",
-      _appointment_view: "all",
     });
+
+  // Only set the tab once when component mounts to avoid infinite loop
+  useEffect(() => {
+    // Only update if the current tab isn't already set to appointments
+    if (queryParams._tab !== "appointments") {
+      setQueryParams({ 
+        _tab: "appointments",
+        // Default appointment view if none is specified
+        _appointment_view: queryParams._appointment_view || "all"
+      });
+    }
+  }, []); // Empty dependency array ensures this only runs once on mount
 
   // Get appointment view from URL
   const appointmentView = queryParams._appointment_view || "all";
 
-  // Add filter based on view
+  // Add filter based on view - but don't trigger another state update
   const apiQueryParams = getFilteredQueryParams();
   if (appointmentView === "upcoming") {
     apiQueryParams.status = "pending";
@@ -45,9 +55,11 @@ const AppointmentList = () => {
   const { mutate: updateStatus, isPending: isUpdatingStatus } =
     useUpdateAppointmentStatus();
 
-  // Handle view change
+  // Handle view change without triggering an infinite loop
   const handleViewChange = (view: string) => {
-    setQueryParams({ _appointment_view: view, page: 1 });
+    if (view !== appointmentView) {
+      setQueryParams({ _appointment_view: view, page: 1 });
+    }
   };
 
   // Handle updating appointment status
@@ -161,7 +173,14 @@ const AppointmentList = () => {
 
   // Handle data table query changes
   const handleQueryChange = (newParams: Record<string, any>) => {
-    setQueryParams(newParams);
+    // Prevent infinite loop by not triggering a state update if nothing changed
+    const hasChanges = Object.entries(newParams).some(
+      ([key, value]) => queryParams[key] !== value
+    );
+    
+    if (hasChanges) {
+      setQueryParams(newParams);
+    }
   };
 
   if (error) {

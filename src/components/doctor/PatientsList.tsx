@@ -1,7 +1,6 @@
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useGetDoctorPatients } from "@/hooks/doctor";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { format } from "date-fns";
 import { User } from "lucide-react";
 import { DataTableWithFilters } from "@/components/ui/data-table/DataTableWithFilters";
@@ -25,13 +24,17 @@ const PatientsList = () => {
     refetch,
   } = useGetDoctorPatients(getFilteredQueryParams());
 
+  // Use a single-run effect to set the tab only when the component mounts
   useEffect(() => {
     // Make sure _appointment_view is cleared when in patients tab
-    setQueryParams({ 
-      _tab: "patients",
-      _appointment_view: undefined
-    });
-  }, [setQueryParams]);
+    // Only run once when component mounts
+    if (queryParams._tab !== "patients") {
+      setQueryParams({ 
+        _tab: "patients",
+        _appointment_view: undefined
+      });
+    }
+  }, []); // Empty dependency array to run only once on mount
 
   // Format date for better display
   const formatDate = (date?: string) => {

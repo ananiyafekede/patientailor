@@ -1,3 +1,4 @@
+
 import { Helmet } from "react-helmet-async";
 import { Spinner } from "@/components/ui/spinner";
 import AppointmentList from "@/components/doctor/AppointmentList";
@@ -41,21 +42,24 @@ const DoctorDashboard = () => {
 
   const handleTabChange = (tab: string) => {
     // When changing tabs, reset tab-specific URL parameters
-    const updatedParams: Record<string, any> = { _tab: tab };
-    
-    // Clear appointment view when switching away from appointments tab
-    if (tab !== "appointments") {
-      updatedParams._appointment_view = undefined;
+    // Only update if the tab actually changes
+    if (tab !== currentTab) {
+      const updatedParams: Record<string, any> = { _tab: tab };
+      
+      // Clear appointment view when switching away from appointments tab
+      if (tab !== "appointments") {
+        updatedParams._appointment_view = undefined;
+      }
+      
+      setQueryParams(updatedParams);
     }
-    
-    setQueryParams(updatedParams);
   };
 
   const {
     doctor: detail,
     isLoading: isLoadingDetail,
     error: detailError,
-  } = useGetDoctorById(doctorProfile.id);
+  } = useGetDoctorById(doctorProfile?.id);
 
   // Only fetch appointments data for metrics, using minimal query params
   const {
@@ -120,7 +124,7 @@ const DoctorDashboard = () => {
           </div>
         ) : (
           <DashboardHeader
-            username={doctorProfile.username}
+            username={doctorProfile?.username}
             specialty={detail?.specialty || ""}
             appointmentsToday={todayAppointments}
           />
