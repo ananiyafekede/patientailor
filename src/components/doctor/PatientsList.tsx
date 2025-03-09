@@ -5,7 +5,7 @@ import { format } from "date-fns";
 import { User } from "lucide-react";
 import { DataTableWithFilters } from "@/components/ui/data-table/DataTableWithFilters";
 import { useQueryParams } from "@/hooks/useQueryParams";
-import { useEffect } from "react";
+import { useEffect, useCallback } from "react";
 
 const PatientsList = () => {
   const { queryParams, setQueryParams, getFilteredQueryParams } =
@@ -37,14 +37,14 @@ const PatientsList = () => {
   }, []); // Empty dependency array to run only once on mount
 
   // Format date for better display
-  const formatDate = (date?: string) => {
+  const formatDate = useCallback((date?: string) => {
     if (!date) return "N/A";
     try {
       return format(new Date(date), "PPP");
     } catch {
       return "Invalid date";
     }
-  };
+  }, []);
 
   const columns = [
     { key: "first_name", label: "First Name", sortable: true },
@@ -66,9 +66,16 @@ const PatientsList = () => {
     },
   ];
 
-  const handleQueryChange = (newParams: Record<string, any>) => {
-    setQueryParams(newParams);
-  };
+  const handleQueryChange = useCallback((newParams: Record<string, any>) => {
+    // Only update if there are actual changes to prevent infinite loop
+    const hasChanges = Object.keys(newParams).some(
+      key => JSON.stringify(queryParams[key]) !== JSON.stringify(newParams[key])
+    );
+    
+    if (hasChanges) {
+      setQueryParams(newParams);
+    }
+  }, [queryParams, setQueryParams]);
 
   return (
     <div className="space-y-4">

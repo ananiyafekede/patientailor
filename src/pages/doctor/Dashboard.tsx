@@ -8,7 +8,7 @@ import { AnalyticsSection } from "@/components/doctor/AnalyticsSection";
 import ScheduleManager from "@/components/doctor/ScheduleManager";
 import PatientsList from "@/components/doctor/PatientsList";
 import { useAuth } from "@/contexts/AuthContext";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import {
   useGetDoctorAppointment,
   useGetDoctorById,
@@ -40,7 +40,7 @@ const DoctorDashboard = () => {
   });
   const currentTab = queryParams._tab || "appointments";
 
-  const handleTabChange = (tab: string) => {
+  const handleTabChange = useCallback((tab: string) => {
     // When changing tabs, reset tab-specific URL parameters
     // Only update if the tab actually changes
     if (tab !== currentTab) {
@@ -53,7 +53,7 @@ const DoctorDashboard = () => {
       
       setQueryParams(updatedParams);
     }
-  };
+  }, [currentTab, setQueryParams]);
 
   const {
     doctor: detail,
@@ -117,7 +117,7 @@ const DoctorDashboard = () => {
         <title>Doctor Dashboard - Hospital Management System</title>
       </Helmet>
 
-      <div className="container mx-auto p-6 space-y-6 bg-gray-50 min-h-screen">
+      <div className="container mx-auto p-4 md:p-6 space-y-4 md:space-y-6 bg-gray-50 min-h-screen">
         {isLoadingDetail ? (
           <div className="flex justify-center py-12">
             <Spinner />
@@ -138,10 +138,10 @@ const DoctorDashboard = () => {
           rating={4.8}
         />
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
           <AnalyticsSection revenueData={revenueData} />
 
-          <div className="bg-white p-6 rounded-lg shadow-md">
+          <div className="bg-white p-4 md:p-6 rounded-lg shadow-md">
             <h2 className="text-xl font-semibold mb-4">Schedule Management</h2>
             <div className="space-y-4">
               <ScheduleManager />
@@ -149,23 +149,23 @@ const DoctorDashboard = () => {
           </div>
         </div>
 
-        <div className="mt-6 bg-white rounded-lg shadow-md p-6">
+        <div className="mt-4 md:mt-6 bg-white rounded-lg shadow-md p-4 md:p-6">
           <Tabs
             value={currentTab}
             onValueChange={handleTabChange}
             className="space-y-4"
           >
-            <TabsList>
+            <TabsList className="w-full md:w-auto overflow-x-auto">
               <TabsTrigger value="appointments">Appointments</TabsTrigger>
               <TabsTrigger value="patients">Patients</TabsTrigger>
             </TabsList>
 
-            <TabsContent value="appointments">
+            <TabsContent value="appointments" className="pt-2">
               <h2 className="text-xl font-semibold mb-4">Appointments</h2>
               <AppointmentList />
             </TabsContent>
 
-            <TabsContent value="patients">
+            <TabsContent value="patients" className="pt-2">
               <h2 className="text-xl font-semibold mb-4">My Patients</h2>
               {isLoadingPatients ? (
                 <div className="flex justify-center py-12">

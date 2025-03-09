@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useQueryParams } from "@/hooks/useQueryParams";
 import { DataTable } from "./DataTable";
 import { Button } from "@/components/ui/button";
@@ -36,15 +36,12 @@ interface Column {
   render?: (item: any) => React.ReactNode;
 }
 
-// Use a custom type for columns after they have been prepared with sort handlers
-interface PreparedColumn extends Omit<Column, "sortable"> {
-  sortable?:
-    | boolean
-    | {
-        isSorted: boolean;
-        isSortedDesc: boolean;
-        onSort: () => void;
-      };
+interface PreparedColumn extends Column {
+  sortable?: boolean | {
+    isSorted: boolean;
+    isSortedDesc: boolean;
+    onSort: () => void;
+  };
 }
 
 interface Action {
@@ -101,15 +98,10 @@ export const DataTableWithFilters = ({
   useEffect(() => {
     // Check if queryParams actually changed to prevent infinite updates
     const hasChanged =
-      Object.entries(queryParams).some(
-        ([key, value]) => prevQueryParams[key] !== value
-      ) ||
-      Object.entries(prevQueryParams).some(
-        ([key, value]) => queryParams[key] !== value
-      );
+      JSON.stringify(queryParams) !== JSON.stringify(prevQueryParams);
 
     if (hasChanged && onQueryChange) {
-      setPrevQueryParams(queryParams);
+      setPrevQueryParams({...queryParams});
       onQueryChange(queryParams);
     }
   }, [queryParams, onQueryChange, prevQueryParams]);
@@ -223,22 +215,24 @@ export const DataTableWithFilters = ({
   );
 
   // Prepare columns with sort handlers - memoize this to prevent recreating on every render
-  const tableColumns: PreparedColumn[] = columns.map((column) => {
-    if (column.sortable) {
-      const isSorted = queryParams.sort === column.key;
-      const isSortedDesc = queryParams.sort === `-${column.key}`;
+  const tableColumns = useMemo(() => {
+    return columns.map((column) => {
+      if (column.sortable) {
+        const isSorted = queryParams.sort === column.key;
+        const isSortedDesc = queryParams.sort === `-${column.key}`;
 
-      return {
-        ...column,
-        sortable: {
-          isSorted,
-          isSortedDesc,
-          onSort: () => handleSort(column.key),
-        },
-      };
-    }
-    return column;
-  });
+        return {
+          ...column,
+          sortable: {
+            isSorted,
+            isSortedDesc,
+            onSort: () => handleSort(column.key),
+          },
+        };
+      }
+      return column;
+    });
+  }, [columns, queryParams.sort, handleSort]);
 
   return (
     <div className="w-full space-y-4 bg-white/50 backdrop-blur rounded-lg border p-4">
@@ -275,7 +269,7 @@ export const DataTableWithFilters = ({
                 <SlidersHorizontal className="h-4 w-4" />
               </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-80">
+            <PopoverContent className="w-80 pointer-events-auto">
               <div className="space-y-4">
                 <h4 className="font-medium">Filters</h4>
                 <Separator />
@@ -364,13 +358,13 @@ export const DataTableWithFilters = ({
 
       <DataTable
         data={data}
-        columns={tableColumns}
+        columns={tableColumns as Column[]}
         actions={actions}
         searchable={false} // Disable built-in search as we're using our custom one
       />
 
       {pagination && pagination.totalPages > 0 && (
-        <div className="flex items-center justify-between pt-4">
+        <div className="flex flex-col sm:flex-row items-center justify-between pt-4 gap-4">
           <div className="flex items-center space-x-2">
             <span className="text-sm text-muted-foreground">
               Rows per page:

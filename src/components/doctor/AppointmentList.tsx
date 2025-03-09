@@ -1,5 +1,6 @@
+
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { useEffect } from "react";
+import { useEffect, useCallback } from "react";
 import { useGetDoctorAppointment } from "@/hooks/doctor";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -56,14 +57,14 @@ const AppointmentList = () => {
     useUpdateAppointmentStatus();
 
   // Handle view change without triggering an infinite loop
-  const handleViewChange = (view: string) => {
+  const handleViewChange = useCallback((view: string) => {
     if (view !== appointmentView) {
       setQueryParams({ _appointment_view: view, page: 1 });
     }
-  };
+  }, [appointmentView, setQueryParams]);
 
   // Handle updating appointment status
-  const handleStatusChange = (appointmentId: number, status: string) => {
+  const handleStatusChange = useCallback((appointmentId: number, status: string) => {
     updateStatus(
       { id: appointmentId, status },
       {
@@ -72,17 +73,17 @@ const AppointmentList = () => {
         },
       }
     );
-  };
+  }, [updateStatus, refetch]);
 
   // Format date for better display
-  const formatDate = (date?: string) => {
+  const formatDate = useCallback((date?: string) => {
     if (!date) return "N/A";
     try {
       return format(new Date(date), "PPP");
     } catch {
       return "Invalid date";
     }
-  };
+  }, []);
 
   // Define columns for DataTable
   const columns = [
@@ -100,11 +101,12 @@ const AppointmentList = () => {
     {
       key: "patient",
       label: "Patient",
-      sortable: false,
-      render: (appointment: Appointment) =>
-        appointment.Patient
+      sortable: true, // Changed to true to enable sorting
+      render: (appointment: Appointment) => {
+        return appointment.Patient
           ? `${appointment.Patient.first_name} ${appointment.Patient.last_name}`
-          : "N/A",
+          : "N/A";
+      },
     },
     {
       key: "status",
@@ -172,7 +174,7 @@ const AppointmentList = () => {
   ];
 
   // Handle data table query changes
-  const handleQueryChange = (newParams: Record<string, any>) => {
+  const handleQueryChange = useCallback((newParams: Record<string, any>) => {
     // Prevent infinite loop by not triggering a state update if nothing changed
     const hasChanges = Object.entries(newParams).some(
       ([key, value]) => queryParams[key] !== value
@@ -181,7 +183,7 @@ const AppointmentList = () => {
     if (hasChanges) {
       setQueryParams(newParams);
     }
-  };
+  }, [queryParams, setQueryParams]);
 
   if (error) {
     return (
