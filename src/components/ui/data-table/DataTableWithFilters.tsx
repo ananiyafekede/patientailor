@@ -36,10 +36,20 @@ interface Column {
   render?: (item: any) => React.ReactNode;
 }
 
+interface SortableColumn extends Column {
+  sortable?: boolean | {
+    isSorted: boolean;
+    isSortedDesc: boolean;
+    onSort: () => void;
+  };
+}
+
 interface Action {
   label: string;
   icon: React.ReactNode;
   onClick: (item: any) => void;
+  condition?: (item: any) => boolean;
+  render?: (item: any) => React.ReactNode;
 }
 
 interface DataTableWithFiltersProps {
@@ -59,7 +69,7 @@ export const DataTableWithFilters = ({
   actions,
   title,
   isLoading = false,
-  pagination,
+  pagination = { page: 1, limit: 10, total: 0, totalPages: 0 },
   searchFields = ["name"],
   onQueryChange,
 }: DataTableWithFiltersProps) => {
@@ -69,6 +79,19 @@ export const DataTableWithFilters = ({
   });
 
   const [activeFilters, setActiveFilters] = useState<Record<string, any>>({});
+  const [searchValue, setSearchValue] = useState(queryParams.search || "");
+
+  // Initialize active filters from URL on component mount
+  useEffect(() => {
+    const filters: Record<string, any> = {};
+    columns.forEach(column => {
+      if (column.filterable && queryParams[column.key]) {
+        filters[column.key] = queryParams[column.key];
+      }
+    });
+    setActiveFilters(filters);
+    setSearchValue(queryParams.search || "");
+  }, [columns, queryParams]);
 
   // Notify parent component when query params change
   useEffect(() => {
@@ -79,11 +102,15 @@ export const DataTableWithFilters = ({
 
   // Handle search input change with debounce
   const handleSearch = (value: string) => {
-    setQueryParams({
-      search: value || undefined,
-      searchFields: value ? searchFields.join(",") : undefined,
-      page: 1,
-    });
+    setSearchValue(value);
+    const timer = setTimeout(() => {
+      setQueryParams({
+        search: value || undefined,
+        searchFields: value ? searchFields.join(",") : undefined,
+        page: 1,
+      });
+    }, 500);
+    return () => clearTimeout(timer);
   };
 
   // Handle sort change
@@ -92,8 +119,8 @@ export const DataTableWithFilters = ({
     let newSort;
 
     if (currentSort === key) {
-      newSort = `${key}`;
-    } else if (currentSort === `${key}`) {
+      newSort = `-${key}`;
+    } else if (currentSort === `-${key}`) {
       newSort = undefined;
     } else {
       newSort = key;
@@ -104,25 +131,36 @@ export const DataTableWithFilters = ({
 
   // Handle filter change
   const handleFilter = (key: string, value: string) => {
-    setQueryParams({ [key]: value, page: 1 });
+    if (value) {
+      setActiveFilters(prev => ({ ...prev, [key]: value }));
+    } else {
+      const newFilters = { ...activeFilters };
+      delete newFilters[key];
+      setActiveFilters(newFilters);
+    }
+    
+    setQueryParams({ [key]: value || undefined, page: 1 });
   };
 
   // Remove a specific filter
   const removeFilter = (key: string) => {
-    const params: Record<string, any> = { page: 1 };
-    params[key] = undefined;
-    setQueryParams(params);
-
     const newFilters = { ...activeFilters };
     delete newFilters[key];
     setActiveFilters(newFilters);
+    
+    const params: Record<string, any> = { page: 1 };
+    params[key] = undefined;
+    setQueryParams(params);
   };
 
   // Clear all filters
   const clearAllFilters = () => {
-    resetQueryParams();
     setActiveFilters({});
-    setQueryParams({ page: 1, limit: 10 });
+    setSearchValue("");
+    
+    // Keep only pagination and essential params
+    const essentialParams = { page: 1, limit: queryParams.limit };
+    setQueryParams(essentialParams);
   };
 
   // Pagination handling
@@ -135,16 +173,22 @@ export const DataTableWithFilters = ({
   };
 
   // Prepare columns with sort handlers
-  const tableColumns = columns.map((column) => ({
-    ...column,
-    sortable: column.sortable
-      ? {
-          isSorted: queryParams.sort === column.key,
-          isSortedDesc: queryParams.sort === `-${column.key}`,
+  const tableColumns = columns.map((column) => {
+    if (column.sortable) {
+      const isSorted = queryParams.sort === column.key;
+      const isSortedDesc = queryParams.sort === `-${column.key}`;
+      
+      return {
+        ...column,
+        sortable: {
+          isSorted,
+          isSortedDesc,
           onSort: () => handleSort(column.key),
-        }
-      : undefined,
-  }));
+        },
+      };
+    }
+    return column;
+  });
 
   return (
     <div className="w-full space-y-4 bg-white/50 backdrop-blur rounded-lg border p-4">
@@ -160,14 +204,15 @@ export const DataTableWithFilters = ({
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
             <Input
               placeholder="Search..."
-              value={queryParams.search || ""}
+              value={searchValue}
               onChange={(e) => handleSearch(e.target.value)}
               className="pl-10"
             />
-            {queryParams.search && (
+            {searchValue && (
               <button
                 className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400"
                 onClick={() => handleSearch("")}
+                type="button"
               >
                 <X className="h-4 w-4" />
               </button>
@@ -193,7 +238,7 @@ export const DataTableWithFilters = ({
                         {column.label}
                       </label>
                       <Select
-                        value={queryParams[column.key] || ""}
+                        value={activeFilters[column.key] || ""}
                         onValueChange={(value) =>
                           handleFilter(column.key, value)
                         }
@@ -220,7 +265,7 @@ export const DataTableWithFilters = ({
                   onClick={clearAllFilters}
                   disabled={
                     Object.keys(activeFilters).length === 0 &&
-                    !queryParams.search
+                    !searchValue
                   }
                 >
                   Reset all filters
@@ -232,13 +277,13 @@ export const DataTableWithFilters = ({
       </div>
 
       {/* Active filters display */}
-      {(Object.keys(activeFilters).length > 0 || queryParams.search) && (
+      {(Object.keys(activeFilters).length > 0 || searchValue) && (
         <div className="flex flex-wrap gap-2 items-center">
           <span className="text-sm text-gray-500">Active filters:</span>
-          {queryParams.search && (
+          {searchValue && (
             <Badge variant="outline" className="flex items-center gap-1">
-              Search: {queryParams.search}
-              <button onClick={() => handleSearch("")}>
+              Search: {searchValue}
+              <button onClick={() => handleSearch("")} type="button">
                 <X className="h-3 w-3" />
               </button>
             </Badge>
@@ -250,12 +295,12 @@ export const DataTableWithFilters = ({
               className="flex items-center gap-1"
             >
               {columns.find((col) => col.key === key)?.label}: {value}
-              <button onClick={() => removeFilter(key)}>
+              <button onClick={() => removeFilter(key)} type="button">
                 <X className="h-3 w-3" />
               </button>
             </Badge>
           ))}
-          {(Object.keys(activeFilters).length > 0 || queryParams.search) && (
+          {(Object.keys(activeFilters).length > 0 || searchValue) && (
             <Button
               variant="ghost"
               size="sm"
@@ -270,12 +315,12 @@ export const DataTableWithFilters = ({
 
       <DataTable
         data={data}
-        columns={tableColumns}
+        columns={tableColumns as any}
         actions={actions}
         searchable={false} // Disable built-in search as we're using our custom one
       />
 
-      {pagination && pagination.totalPages > 1 && (
+      {pagination && pagination.totalPages > 0 && (
         <div className="flex items-center justify-between pt-4">
           <div className="flex items-center space-x-2">
             <span className="text-sm text-muted-foreground">

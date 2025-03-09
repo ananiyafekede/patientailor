@@ -41,7 +41,15 @@ const DoctorDashboard = () => {
   const currentTab = queryParams._tab || "appointments";
 
   const handleTabChange = (tab: string) => {
-    setQueryParams({ _tab: tab });
+    // When changing tabs, reset tab-specific URL parameters
+    const updatedParams = { _tab: tab };
+    
+    // Clear appointment view when switching away from appointments tab
+    if (tab !== "appointments") {
+      updatedParams._appointment_view = undefined;
+    }
+    
+    setQueryParams(updatedParams);
   };
 
   const {

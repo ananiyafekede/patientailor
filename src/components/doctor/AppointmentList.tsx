@@ -1,11 +1,12 @@
+
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useGetDoctorAppointment } from "@/hooks/doctor";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
 import { format } from "date-fns";
-import { Calendar, Check, Clock, File, User } from "lucide-react";
+import { Check, File } from "lucide-react";
 import PrescriptionForm from "./PrescriptionForm";
 import { useUpdateAppointmentStatus } from "@/hooks/appointment";
 import { useQueryParams } from "@/hooks/useQueryParams";
@@ -23,7 +24,7 @@ const AppointmentList = () => {
     });
 
   // Get appointment view from URL
-  const appointmentView = queryParams._appointment_view || "upcoming";
+  const appointmentView = queryParams._appointment_view || "all";
 
   // Add filter based on view
   const apiQueryParams = getFilteredQueryParams();
@@ -204,7 +205,7 @@ const AppointmentList = () => {
         columns={columns}
         actions={actions}
         isLoading={isLoading}
-        pagination={pagination}
+        pagination={pagination || { page: 1, limit: 10, total: 0, totalPages: 0 }}
         searchFields={["notes", "patient.first_name", "patient.last_name"]}
         onQueryChange={handleQueryChange}
       />
