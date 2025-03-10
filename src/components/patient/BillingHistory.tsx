@@ -1,163 +1,153 @@
 
+import { useState, useCallback } from "react";
 import { useGetPatientBillings } from "@/hooks/patient";
-import { format } from "date-fns";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import {
   Table,
   TableBody,
   TableCell,
-  TableHead,
   TableHeader,
+  TableHead,
   TableRow,
 } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { useQueryParams } from "@/hooks/useQueryParams";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ChevronLeft, ChevronRight, DollarSign, CreditCard } from "lucide-react";
+import { format } from "date-fns";
 import { Spinner } from "@/components/ui/spinner";
-import { AlertTriangle, Download, Receipt } from "lucide-react";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Billing } from "@/types";
 
 export const BillingHistory = () => {
-  const { queryParams, setQueryParams } = useQueryParams({
-    page: 1,
-    limit: 10,
-    sort: "-billing_date" // Sort by most recent first
+  const [page, setPage] = useState(1);
+  const [limit] = useState(10);
+  const { data: billings, isLoading } = useGetPatientBillings({
+    page,
+    limit,
   });
-  
-  const { isLoading, data: billings = [], error, pagination } = useGetPatientBillings(undefined, queryParams);
 
-  const handlePageChange = (newPage: number) => {
-    setQueryParams({ page: newPage });
-  };
-
-  // Format date safely
-  const formatDate = (dateString?: string) => {
-    if (!dateString) return "N/A";
+  const formatDate = useCallback((date: string | undefined) => {
+    if (!date) return "N/A";
     try {
-      return format(new Date(dateString), "PPP");
-    } catch (e) {
+      return format(new Date(date), "PPP");
+    } catch (error) {
       return "Invalid date";
     }
-  };
+  }, []);
 
-  const getStatusStyles = (status: string) => {
-    switch (status?.toLowerCase()) {
-      case "paid":
-        return "bg-green-500";
-      case "pending":
-        return "bg-yellow-500";
-      case "overdue":
-        return "bg-red-500";
-      default:
-        return "bg-gray-500";
+  const formatAmount = useCallback((amount: number) => {
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "USD",
+    }).format(amount);
+  }, []);
+
+  const handlePrevious = useCallback(() => {
+    if (page > 1) {
+      setPage((prev) => prev - 1);
     }
-  };
+  }, [page]);
+
+  const handleNext = useCallback(() => {
+    const pagination = billings?.pagination || { totalPages: 1 };
+    if (page < pagination.totalPages) {
+      setPage((prev) => prev + 1);
+    }
+  }, [page, billings]);
 
   if (isLoading) {
-    return (
-      <div className="flex justify-center py-10">
-        <Spinner />
-      </div>
-    );
+    return <Spinner />;
   }
 
-  if (error) {
-    return (
-      <Alert variant="destructive">
-        <AlertTriangle className="h-4 w-4" />
-        <AlertTitle>Error</AlertTitle>
-        <AlertDescription>
-          Failed to load billing history. Please try again later.
-        </AlertDescription>
-      </Alert>
-    );
-  }
+  const pagination = billings?.pagination || { 
+    total: 0, 
+    limit: 10, 
+    page: 1, 
+    totalPages: 1 
+  };
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Billing History</CardTitle>
-        <CardDescription>
-          View and manage your billing information
-        </CardDescription>
+        <CardTitle className="flex items-center gap-2">
+          <DollarSign className="h-5 w-5" />
+          Billing History
+        </CardTitle>
       </CardHeader>
       <CardContent>
-        {billings.length === 0 ? (
-          <div className="text-center py-8">
-            <Receipt className="mx-auto h-10 w-10 text-muted-foreground opacity-50 mb-4" />
-            <p className="text-muted-foreground">No billing records found</p>
-          </div>
-        ) : (
+        {billings && billings.length > 0 ? (
           <>
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Invoice #</TableHead>
+                  <TableHead>Bill ID</TableHead>
                   <TableHead>Date</TableHead>
+                  <TableHead>Service</TableHead>
                   <TableHead>Amount</TableHead>
                   <TableHead>Status</TableHead>
-                  <TableHead>Service</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
+                  <TableHead>Payment Method</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {billings.map((bill) => (
-                  <TableRow key={bill.id}>
-                    <TableCell className="font-medium">#{bill.id}</TableCell>
-                    <TableCell>{formatDate(bill.billing_date)}</TableCell>
-                    <TableCell>${bill.amount?.toFixed(2) || "0.00"}</TableCell>
+                {billings.map((billing: Billing) => (
+                  <TableRow key={billing.id}>
+                    <TableCell>{billing.id}</TableCell>
+                    <TableCell>{formatDate(billing.billing_date || billing.payment_date)}</TableCell>
+                    <TableCell>{billing.service_name || `Appointment #${billing.appointment_id}`}</TableCell>
+                    <TableCell>{formatAmount(billing.amount)}</TableCell>
                     <TableCell>
-                      <Badge className={getStatusStyles(bill.payment_status)}>
-                        {bill.payment_status || "Unknown"}
+                      <Badge
+                        variant={
+                          billing.payment_status === "paid"
+                            ? "default"
+                            : "secondary"
+                        }
+                      >
+                        {billing.payment_status}
                       </Badge>
                     </TableCell>
-                    <TableCell>{bill.service_name || "Medical Service"}</TableCell>
-                    <TableCell className="text-right">
-                      <Button variant="outline" size="sm">
-                        <Download className="mr-2 h-4 w-4" />
-                        Receipt
-                      </Button>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <CreditCard className="h-4 w-4" />
+                        {billing.payment_method || "N/A"}
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
             </Table>
 
-            {/* Simple pagination */}
-            {pagination && pagination.totalPages > 1 && (
-              <div className="flex items-center justify-between mt-4 pt-2 border-t">
-                <div className="text-sm text-muted-foreground">
-                  Showing {((pagination.page - 1) * pagination.limit) + 1} to{" "}
-                  {Math.min(pagination.page * pagination.limit, pagination.total)} of{" "}
-                  {pagination.total} records
-                </div>
-                <div className="flex space-x-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handlePageChange(pagination.page - 1)}
-                    disabled={pagination.page <= 1}
-                  >
-                    Previous
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handlePageChange(pagination.page + 1)}
-                    disabled={pagination.page >= pagination.totalPages}
-                  >
-                    Next
-                  </Button>
-                </div>
+            <div className="mt-4 flex items-center justify-between">
+              <div className="text-sm text-muted-foreground">
+                Showing {((pagination.page - 1) * pagination.limit) + 1} to{" "}
+                {Math.min(pagination.page * pagination.limit, pagination.total)} of{" "}
+                {pagination.total} entries
               </div>
-            )}
+              <div className="flex items-center space-x-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handlePrevious}
+                  disabled={pagination.page <= 1}
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                  Previous
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleNext}
+                  disabled={pagination.page >= pagination.totalPages}
+                >
+                  Next
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
           </>
+        ) : (
+          <div className="text-center py-8 text-muted-foreground">
+            No billing records available
+          </div>
         )}
       </CardContent>
     </Card>

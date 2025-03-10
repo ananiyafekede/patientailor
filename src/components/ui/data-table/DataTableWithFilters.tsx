@@ -1,435 +1,387 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-import { useState, useEffect, useCallback, useMemo } from "react";
-import { useQueryParams } from "@/hooks/useQueryParams";
-import { DataTable } from "./DataTable";
+
+import { useState, useEffect, useCallback } from "react";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import {
+  ChevronDown,
   ChevronLeft,
   ChevronRight,
+  MoreHorizontal,
+  ArrowUpDown,
   Search,
-  SlidersHorizontal,
-  X,
 } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
 import { Pagination } from "@/types";
+import { Spinner } from "@/components/ui/spinner";
 
 interface Column {
   key: string;
   label: string;
-  sortable?:
-    | boolean
-    | { isSorted: boolean; isSortedDesc: boolean; onSort: () => void };
+  sortable?: boolean;
   filterable?: boolean;
-  filterOptions?: { label: string; value: string }[];
+  filterOptions?: Array<{ label: string; value: string }>;
   render?: (item: any) => React.ReactNode;
 }
 
-interface PreparedColumn extends Column {
-  sortable?:
-    | boolean
-    | {
-        isSorted: boolean;
-        isSortedDesc: boolean;
-        onSort: () => void;
-      };
+interface PreparedColumn extends Omit<Column, 'sortable'> {
+  sortable?: boolean;
+  // The sortable property can also be an object with these properties
+  isSorted?: boolean;
+  isSortedDesc?: boolean;
+  onSort?: () => void;
 }
 
 interface Action {
   label: string;
-  icon: React.ReactNode;
   onClick: (item: any) => void;
+  icon?: React.ReactNode;
   condition?: (item: any) => boolean;
   render?: (item: any) => React.ReactNode;
 }
 
 interface DataTableWithFiltersProps {
+  title?: string;
   data: any[];
   columns: Column[];
   actions?: Action[];
-  title?: string;
   isLoading?: boolean;
-  pagination?: Pagination;
+  showSearch?: boolean;
   searchFields?: string[];
+  pagination?: Pagination;
   onQueryChange?: (params: Record<string, any>) => void;
 }
 
-export const DataTableWithFilters = ({
+export function DataTableWithFilters({
+  title,
   data,
   columns,
   actions,
-  title,
   isLoading = false,
-  pagination = { page: 1, limit: 10, total: 0, totalPages: 0 },
-  searchFields = ["name"],
+  showSearch = true,
+  searchFields = [],
+  pagination,
   onQueryChange,
-}: DataTableWithFiltersProps) => {
-  const { queryParams, setQueryParams } = useQueryParams({
-    page: 1,
-    limit: 10,
-  });
-
-  const [activeFilters, setActiveFilters] = useState<Record<string, any>>({});
-  const [searchValue, setSearchValue] = useState(queryParams.search || "");
-  const [prevQueryParams, setPrevQueryParams] = useState(queryParams);
-
+}: DataTableWithFiltersProps) {
+  const [searchValue, setSearchValue] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [sortField, setSortField] = useState<string | null>(null);
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
+  const [filters, setFilters] = useState<Record<string, string>>({});
+  
+  // Reset state when dependencies change to prevent infinite renders
   useEffect(() => {
-    const filters: Record<string, any> = {};
-    columns.forEach((column) => {
-      if (column.filterable && queryParams[column.key]) {
-        filters[column.key] = queryParams[column.key];
-        console.log("column.key", queryParams[column.key]);
-      }
-    });
-    setActiveFilters(filters);
-    setSearchValue(queryParams.search || "");
+    if (pagination?.page) {
+      setCurrentPage(pagination.page);
+    }
+  }, [pagination?.page]);
+
+  const handleSearch = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchValue(e.target.value);
+    // Don't update query on every keystroke, could add debounce here
   }, []);
 
-  useEffect(() => {
-    const hasChanged =
-      JSON.stringify(queryParams) !== JSON.stringify(prevQueryParams);
-    if (hasChanged && onQueryChange) {
-      setPrevQueryParams({ ...queryParams });
-      onQueryChange(queryParams);
+  const handleSort = useCallback((field: string) => {
+    let newDirection: "asc" | "desc" = "asc";
+    
+    if (sortField === field) {
+      newDirection = sortDirection === "asc" ? "desc" : "asc";
     }
-  }, [queryParams, onQueryChange, prevQueryParams]);
-
-  const handleSearch = useCallback(
-    (value: string) => {
-      setSearchValue(value);
-      const timer = setTimeout(() => {
-        if (value !== queryParams.search) {
-          setQueryParams({
-            search: value || undefined,
-            searchFields: value ? searchFields.join(",") : undefined,
-            page: 1,
-          });
-        }
-      }, 500);
-      return () => clearTimeout(timer);
-    },
-    [queryParams.search, searchFields, setQueryParams]
-  );
-
-  // Handle sort change
-  const handleSort = useCallback(
-    (key: string) => {
-      const currentSort = queryParams.sort;
-      let newSort;
-
-      if (currentSort === key) {
-        newSort = `${key}`;
-      } else if (currentSort === `${key}`) {
-        newSort = undefined;
-      } else {
-        newSort = key;
-      }
-
-      // Only update if there's an actual change
-      if (newSort !== currentSort) {
-        setQueryParams({ sort: newSort, page: 1 });
-      }
-    },
-    [queryParams.sort, setQueryParams]
-  );
-
-  // Handle filter change
-  const handleFilter = useCallback(
-    (key: string, value: string) => {
-      // Only update if the value actually changed
-      if (key === "status" && value === "all") {
-        value = undefined;
-        const newFilters = { ...activeFilters };
-        delete newFilters[key];
-        setActiveFilters(newFilters);
-      }
-      if (activeFilters[key] !== value) {
-        if (value) {
-          setActiveFilters((prev) => ({ ...prev, [key]: value }));
-        } else {
-          const newFilters = { ...activeFilters };
-          delete newFilters[key];
-          setActiveFilters(newFilters);
-        }
-
-        setQueryParams({ [key]: value || undefined, page: 1 });
-      }
-    },
-    [activeFilters, setQueryParams]
-  );
-
-  // Remove a specific filter
-  const removeFilter = useCallback(
-    (key: string) => {
-      if (activeFilters[key]) {
-        const newFilters = { ...activeFilters };
-        delete newFilters[key];
-        setActiveFilters(newFilters);
-
-        const params: Record<string, any> = { page: 1 };
-        params[key] = undefined;
-        setQueryParams(params);
-      }
-    },
-    [activeFilters, setQueryParams]
-  );
-
-  // Clear all filters
-  const clearAllFilters = useCallback(() => {
-    // Only perform this operation if there are filters to clear
-    if (Object.keys(activeFilters).length > 0 || searchValue) {
-      setActiveFilters({});
-      setSearchValue("");
-
-      // Keep only pagination and essential params
-      const essentialParams = { page: 1, limit: queryParams.limit };
-      setQueryParams(essentialParams);
+    
+    setSortField(field);
+    setSortDirection(newDirection);
+    
+    if (onQueryChange) {
+      onQueryChange({
+        ...filters,
+        sort: field,
+        order: newDirection,
+        page: currentPage,
+        search: searchValue || undefined,
+      });
     }
-  }, [activeFilters, queryParams.limit, searchValue, setQueryParams]);
+  }, [sortField, sortDirection, filters, currentPage, searchValue, onQueryChange]);
 
-  // Pagination handling
-  const handlePageChange = useCallback(
-    (newPage: number) => {
-      if (newPage !== queryParams.page) {
-        setQueryParams({ page: newPage });
-      }
-    },
-    [queryParams.page, setQueryParams]
-  );
+  const handleFilter = useCallback((field: string, value: string) => {
+    const newFilters = { ...filters, [field]: value };
+    setFilters(newFilters);
+    
+    if (onQueryChange) {
+      onQueryChange({
+        ...newFilters,
+        sort: sortField || undefined,
+        order: sortDirection,
+        page: 1, // Reset to first page on filter change
+        search: searchValue || undefined,
+      });
+    }
+  }, [filters, sortField, sortDirection, searchValue, onQueryChange]);
 
-  const handleLimitChange = useCallback(
-    (newLimit: string) => {
-      const parsedLimit = parseInt(newLimit);
-      if (parsedLimit !== queryParams.limit) {
-        setQueryParams({ limit: parsedLimit, page: 1 });
-      }
-    },
-    [queryParams.limit, setQueryParams]
-  );
+  const handlePageChange = useCallback((page: number) => {
+    setCurrentPage(page);
+    
+    if (onQueryChange) {
+      onQueryChange({
+        ...filters,
+        sort: sortField || undefined,
+        order: sortDirection,
+        page,
+        search: searchValue || undefined,
+      });
+    }
+  }, [filters, sortField, sortDirection, searchValue, onQueryChange]);
 
-  // Prepare columns with sort handlers - memoize this to prevent recreating on every render
-  const tableColumns = useMemo(() => {
-    return columns.map((column) => {
-      if (column.sortable) {
-        const isSorted = queryParams.sort === column.key;
-        const isSortedDesc = queryParams.sort === `-${column.key}`;
+  const preparedColumns: PreparedColumn[] = columns.map((column) => ({
+    ...column,
+    isSorted: sortField === column.key,
+    isSortedDesc: sortDirection === "desc",
+    onSort: column.sortable ? () => handleSort(column.key) : undefined,
+  }));
 
-        return {
-          ...column,
-          sortable: {
-            isSorted,
-            isSortedDesc,
-            onSort: () => handleSort(column.key),
-          },
-        };
-      }
-      return column;
-    });
-  }, [columns, queryParams.sort, handleSort]);
+  const renderPagination = () => {
+    if (!pagination) return null;
+    
+    const { page = 1, limit = 10, total = 0, totalPages = 1 } = pagination;
+    
+    return (
+      <div className="flex items-center justify-between mt-4">
+        <div className="text-sm text-muted-foreground">
+          Showing {Math.min((page - 1) * limit + 1, total)} to{" "}
+          {Math.min(page * limit, total)} of {total} results
+        </div>
+        <div className="flex items-center space-x-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => handlePageChange(page - 1)}
+            disabled={page <= 1}
+          >
+            <ChevronLeft className="h-4 w-4" />
+            Previous
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => handlePageChange(page + 1)}
+            disabled={page >= totalPages}
+          >
+            Next
+            <ChevronRight className="h-4 w-4" />
+          </Button>
+        </div>
+      </div>
+    );
+  };
+
+  const applySearch = useCallback(() => {
+    if (onQueryChange) {
+      onQueryChange({
+        ...filters,
+        sort: sortField || undefined,
+        order: sortDirection,
+        page: 1, // Reset to first page on search
+        search: searchValue || undefined,
+      });
+    }
+  }, [filters, sortField, sortDirection, searchValue, onQueryChange]);
 
   return (
-    <div className="w-full space-y-4 bg-white/50 backdrop-blur rounded-lg border p-4">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        {title && (
-          <h1 className="text-2xl md:text-3xl font-bold tracking-tight">
-            {title}
-          </h1>
-        )}
-
-        <div className="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
-          <div className="relative flex-grow">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        {title && <h2 className="text-xl font-semibold">{title}</h2>}
+        
+        {showSearch && searchFields.length > 0 && (
+          <div className="flex items-center space-x-2">
             <Input
               placeholder="Search..."
               value={searchValue}
-              onChange={(e) => handleSearch(e.target.value)}
-              className="pl-10"
+              onChange={handleSearch}
+              className="max-w-sm"
             />
-            {searchValue && (
-              <button
-                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400"
-                onClick={() => handleSearch("")}
-                type="button"
-                title="Clear search"
-              >
-                <X className="h-4 w-4" />
-              </button>
-            )}
-          </div>
-
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button variant="outline" size="icon">
-                <SlidersHorizontal className="h-4 w-4" />
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-80 pointer-events-auto">
-              <div className="space-y-4">
-                <h4 className="font-medium">Filters</h4>
-                <Separator />
-
-                {columns
-                  .filter((col) => col.filterable)
-                  .map((column) => (
-                    <div key={column.key} className="space-y-2">
-                      <label className="text-sm font-medium">
-                        {column.label}
-                      </label>
-                      <Select
-                        value={activeFilters[column.key] || "all"}
-                        onValueChange={(value) =>
-                          handleFilter(column.key, value)
-                        }
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select..." />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="all">All</SelectItem>
-                          {column.filterOptions?.map((option) => (
-                            <SelectItem key={option.value} value={option.value}>
-                              {option.label}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  ))}
-
-                <Separator />
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={clearAllFilters}
-                  disabled={
-                    Object.keys(activeFilters).length === 0 && !searchValue
-                  }
-                >
-                  Reset all filters
-                </Button>
-              </div>
-            </PopoverContent>
-          </Popover>
-        </div>
-      </div>
-
-      {/* Active filters display */}
-      {(Object.keys(activeFilters).length > 0 || searchValue) && (
-        <div className="flex flex-wrap gap-2 items-center">
-          <span className="text-sm text-gray-500">Active filters:</span>
-          {searchValue && (
-            <Badge variant="outline" className="flex items-center gap-1">
-              Search: {searchValue}
-              <button
-                onClick={() => handleSearch("")}
-                type="button"
-                title="clear search"
-              >
-                <X className="h-3 w-3" />
-              </button>
-            </Badge>
-          )}
-          {Object.entries(activeFilters).map(([key, value]) => (
-            <Badge
-              key={key}
-              variant="outline"
-              className="flex items-center gap-1"
-            >
-              {columns.find((col) => col.key === key)?.label}: {value}
-              <button
-                onClick={() => removeFilter(key)}
-                type="button"
-                title="remove filter"
-              >
-                <X className="h-3 w-3" />
-              </button>
-            </Badge>
-          ))}
-          {(Object.keys(activeFilters).length > 0 || searchValue) && (
-            <Button
-              variant="ghost"
+            <Button 
+              variant="secondary"
               size="sm"
-              onClick={clearAllFilters}
-              className="h-7 px-2"
+              onClick={applySearch}
             >
-              Clear all
-            </Button>
-          )}
-        </div>
-      )}
-
-      <DataTable
-        data={data}
-        columns={tableColumns as Column[]}
-        actions={actions}
-        searchable={false} // Disable built-in search as we're using our custom one
-      />
-
-      {pagination && pagination.totalPages > 0 && (
-        <div className="flex flex-col sm:flex-row items-center justify-between pt-4 gap-4">
-          <div className="flex items-center space-x-2">
-            <span className="text-sm text-muted-foreground">
-              Rows per page:
-            </span>
-            <Select
-              value={String(queryParams.limit || 10)}
-              onValueChange={handleLimitChange}
-            >
-              <SelectTrigger className="h-8 w-[70px]">
-                <SelectValue placeholder="10" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="5">5</SelectItem>
-                <SelectItem value="10">10</SelectItem>
-                <SelectItem value="20">20</SelectItem>
-                <SelectItem value="50">50</SelectItem>
-                <SelectItem value="100">100</SelectItem>
-              </SelectContent>
-            </Select>
-
-            <span className="text-sm text-muted-foreground">
-              {pagination.total > 0
-                ? `${(pagination.page - 1) * pagination.limit + 1}-${Math.min(
-                    pagination.page * pagination.limit,
-                    pagination.total
-                  )} of ${pagination.total}`
-                : "No items"}
-            </span>
-          </div>
-
-          <div className="flex items-center space-x-2">
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={() => handlePageChange(pagination.page - 1)}
-              disabled={pagination.page <= 1 || isLoading}
-            >
-              <ChevronLeft className="h-4 w-4" />
-            </Button>
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={() => handlePageChange(pagination.page + 1)}
-              disabled={pagination.page >= pagination.totalPages || isLoading}
-            >
-              <ChevronRight className="h-4 w-4" />
+              <Search className="h-4 w-4" />
             </Button>
           </div>
-        </div>
-      )}
+        )}
+      </div>
+      
+      <div className="rounded-md border">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              {preparedColumns.map((column) => (
+                <TableHead key={column.key}>
+                  <div className="flex items-center space-x-2">
+                    <span>{column.label}</span>
+                    {column.sortable && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="-ml-3 h-8 data-[state=sorted]:text-primary"
+                        onClick={column.onSort}
+                      >
+                        <ArrowUpDown className="h-4 w-4" />
+                      </Button>
+                    )}
+                    {column.filterable && column.filterOptions && (
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="sm" className="-ml-3 h-8">
+                            <ChevronDown className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="start">
+                          {column.filterOptions.map((option) => (
+                            <DropdownMenuItem
+                              key={option.value}
+                              onClick={() => handleFilter(column.key, option.value)}
+                            >
+                              {option.label}
+                            </DropdownMenuItem>
+                          ))}
+                          <DropdownMenuItem
+                            onClick={() => {
+                              const newFilters = { ...filters };
+                              delete newFilters[column.key];
+                              setFilters(newFilters);
+                              
+                              if (onQueryChange) {
+                                onQueryChange({
+                                  ...newFilters,
+                                  sort: sortField || undefined,
+                                  order: sortDirection,
+                                  page: 1,
+                                  search: searchValue || undefined,
+                                });
+                              }
+                            }}
+                          >
+                            Clear filter
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    )}
+                  </div>
+                </TableHead>
+              ))}
+              {actions && actions.length > 0 && <TableHead>Actions</TableHead>}
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {isLoading ? (
+              <TableRow>
+                <TableCell
+                  colSpan={columns.length + (actions ? 1 : 0)}
+                  className="h-24 text-center"
+                >
+                  <Spinner className="mx-auto" />
+                </TableCell>
+              </TableRow>
+            ) : data.length === 0 ? (
+              <TableRow>
+                <TableCell
+                  colSpan={columns.length + (actions ? 1 : 0)}
+                  className="h-24 text-center"
+                >
+                  No results.
+                </TableCell>
+              </TableRow>
+            ) : (
+              data.map((item, index) => (
+                <TableRow key={item.id || index}>
+                  {preparedColumns.map((column) => (
+                    <TableCell key={`${item.id || index}-${column.key}`}>
+                      {column.render
+                        ? column.render(item)
+                        : item[column.key] || "N/A"}
+                    </TableCell>
+                  ))}
+                  
+                  {actions && actions.length > 0 && (
+                    <TableCell>
+                      <div className="flex items-center justify-end space-x-2">
+                        {actions.map((action, actionIndex) => {
+                          if (action.render) {
+                            return (
+                              <div key={`action-${actionIndex}`}>
+                                {action.render(item)}
+                              </div>
+                            );
+                          }
+                          
+                          if (action.condition && !action.condition(item)) {
+                            return null;
+                          }
+                          
+                          return (
+                            <Button
+                              key={`action-${actionIndex}`}
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => action.onClick(item)}
+                            >
+                              {action.icon}
+                              <span className="sr-only">{action.label}</span>
+                            </Button>
+                          );
+                        })}
+                        
+                        {actions.length > 2 && (
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                className="h-8 w-8 p-0"
+                              >
+                                <span className="sr-only">Open menu</span>
+                                <MoreHorizontal className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              {actions
+                                .filter(
+                                  (action) =>
+                                    !action.condition || action.condition(item)
+                                )
+                                .map((action, actionIndex) => (
+                                  <DropdownMenuItem
+                                    key={`dropdown-action-${actionIndex}`}
+                                    onClick={() => action.onClick(item)}
+                                  >
+                                    {action.icon}
+                                    <span className="ml-2">{action.label}</span>
+                                  </DropdownMenuItem>
+                                ))}
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        )}
+                      </div>
+                    </TableCell>
+                  )}
+                </TableRow>
+              ))
+            )}
+          </TableBody>
+        </Table>
+      </div>
+      
+      {renderPagination()}
     </div>
   );
-};
+}

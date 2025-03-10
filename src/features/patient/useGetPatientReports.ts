@@ -11,7 +11,12 @@ function useGetPatientReports(id?: number | string, queryParams?: Record<string,
   return {
     isLoading,
     reports: data?.reports || [],
-    pagination: data?.pagination || {},
+    pagination: data?.pagination || {
+      total: 0,
+      limit: 10,
+      page: 1,
+      totalPages: 0
+    },
     error,
   };
 }

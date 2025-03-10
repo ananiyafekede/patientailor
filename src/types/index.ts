@@ -1,3 +1,4 @@
+
 export interface User {
   id: number;
   username: string;
@@ -64,13 +65,16 @@ export interface Notification {
 }
 
 export interface Report {
-  created_by?: number | null;
-  created_at?: string;
   id?: number;
-  type?: "prescription" | "diagnosis" | "treatment" | "lab-test";
-  content: object;
+  type?: string;
+  content: object | string;
   author_id?: number;
   patient_id: number;
+  createdAt?: string;
+  updatedAt?: string;
+  created_by?: number | null;
+  patient?: Patient;
+  file_url?: string;
 }
 
 export interface Billing {
@@ -80,6 +84,8 @@ export interface Billing {
   payment_method?: string | null;
   payment_date?: string | null;
   amount: number;
+  billing_date?: string;
+  service_name?: string;
 }
 
 export interface ActivityLog {
