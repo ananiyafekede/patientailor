@@ -1,6 +1,5 @@
-
 import { useEffect, useState } from "react";
-import { Eye, FileIcon, FileText, FilePdf, FileImage, Download, Calendar } from "lucide-react";
+import { Eye, FileIcon, FileText, File, FileImage, Download, Calendar } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
@@ -13,7 +12,7 @@ import { Report } from "@/types";
 const getFileIcon = (fileType: string | undefined) => {
   if (!fileType) return <FileText className="h-5 w-5" />;
   
-  if (fileType.includes("pdf")) return <FilePdf className="h-5 w-5" />;
+  if (fileType.includes("pdf")) return <File className="h-5 w-5 text-red-500" />;
   if (fileType.includes("image")) return <FileImage className="h-5 w-5" />;
   return <FileIcon className="h-5 w-5" />;
 };
@@ -86,7 +85,7 @@ const ReportDetailModal = ({ report }: { report: Report }) => {
                 ) : report.file_url.includes('pdf') ? (
                   <div className="flex items-center justify-between bg-gray-100 p-3 rounded">
                     <div className="flex items-center">
-                      <FilePdf className="h-8 w-8 text-red-500 mr-3" />
+                      <File className="h-8 w-8 text-red-500 mr-3" />
                       <span>PDF Document</span>
                     </div>
                     <Button variant="outline" size="sm" asChild>

@@ -1,6 +1,6 @@
 
 import { format } from "date-fns";
-import { Calendar, Clock, Loader, Eye, Edit, X } from "lucide-react";
+import { Calendar, Clock, Loader, Eye, Edit, X, MoreVertical } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -23,6 +23,12 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useGetPatientAppointments } from "@/hooks/patient";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger
+} from "@/components/ui/dropdown-menu";
 
 const AppointmentList = () => {
   const navigate = useNavigate();
@@ -161,23 +167,36 @@ const AppointmentList = () => {
                         {appointment.status}
                       </Badge>
                     </TableCell>
-                    <TableCell className="text-right space-x-2">
-                      <Button variant="outline" size="sm">
-                        <Eye className="h-4 w-4 mr-1" />
-                        Details
-                      </Button>
-                      {appointment.status === "pending" && new Date(appointment.appointment_date) > new Date() && (
-                        <>
-                          <Button variant="outline" size="sm">
-                            <Edit className="h-4 w-4 mr-1" />
-                            Reschedule
+                    <TableCell className="text-right">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                            <MoreVertical className="h-4 w-4" />
                           </Button>
-                          <Button variant="outline" size="sm" className="text-red-500 hover:text-red-700">
-                            <X className="h-4 w-4 mr-1" />
-                            Cancel
-                          </Button>
-                        </>
-                      )}
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={() => console.log("View details", appointment.id)}>
+                            <Eye className="h-4 w-4 mr-2" />
+                            View Details
+                          </DropdownMenuItem>
+                          
+                          {appointment.status === "pending" && new Date(appointment.appointment_date) > new Date() && (
+                            <>
+                              <DropdownMenuItem onClick={() => console.log("Reschedule", appointment.id)}>
+                                <Edit className="h-4 w-4 mr-2" />
+                                Reschedule
+                              </DropdownMenuItem>
+                              <DropdownMenuItem 
+                                onClick={() => console.log("Cancel", appointment.id)}
+                                className="text-red-500 hover:text-red-700 focus:text-red-700"
+                              >
+                                <X className="h-4 w-4 mr-2" />
+                                Cancel
+                              </DropdownMenuItem>
+                            </>
+                          )}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </TableCell>
                   </TableRow>
                 ))}
