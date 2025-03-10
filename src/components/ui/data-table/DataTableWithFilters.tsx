@@ -30,18 +30,22 @@ import { Pagination } from "@/types";
 interface Column {
   key: string;
   label: string;
-  sortable?: boolean;
+  sortable?:
+    | boolean
+    | { isSorted: boolean; isSortedDesc: boolean; onSort: () => void };
   filterable?: boolean;
   filterOptions?: { label: string; value: string }[];
   render?: (item: any) => React.ReactNode;
 }
 
 interface PreparedColumn extends Column {
-  sortable?: boolean | {
-    isSorted: boolean;
-    isSortedDesc: boolean;
-    onSort: () => void;
-  };
+  sortable?:
+    | boolean
+    | {
+        isSorted: boolean;
+        isSortedDesc: boolean;
+        onSort: () => void;
+      };
 }
 
 interface Action {
@@ -82,31 +86,27 @@ export const DataTableWithFilters = ({
   const [searchValue, setSearchValue] = useState(queryParams.search || "");
   const [prevQueryParams, setPrevQueryParams] = useState(queryParams);
 
-  // Initialize active filters from URL on component mount (only once)
   useEffect(() => {
     const filters: Record<string, any> = {};
     columns.forEach((column) => {
       if (column.filterable && queryParams[column.key]) {
         filters[column.key] = queryParams[column.key];
+        console.log("column.key", queryParams[column.key]);
       }
     });
     setActiveFilters(filters);
     setSearchValue(queryParams.search || "");
-  }, []); // Empty dependency array ensures this only runs once
+  }, []);
 
-  // Notify parent component when query params change, but prevent infinite loop
   useEffect(() => {
-    // Check if queryParams actually changed to prevent infinite updates
     const hasChanged =
       JSON.stringify(queryParams) !== JSON.stringify(prevQueryParams);
-
     if (hasChanged && onQueryChange) {
-      setPrevQueryParams({...queryParams});
+      setPrevQueryParams({ ...queryParams });
       onQueryChange(queryParams);
     }
   }, [queryParams, onQueryChange, prevQueryParams]);
 
-  // Handle search input change with debounce
   const handleSearch = useCallback(
     (value: string) => {
       setSearchValue(value);
@@ -131,8 +131,8 @@ export const DataTableWithFilters = ({
       let newSort;
 
       if (currentSort === key) {
-        newSort = `-${key}`;
-      } else if (currentSort === `-${key}`) {
+        newSort = `${key}`;
+      } else if (currentSort === `${key}`) {
         newSort = undefined;
       } else {
         newSort = key;
@@ -150,6 +150,12 @@ export const DataTableWithFilters = ({
   const handleFilter = useCallback(
     (key: string, value: string) => {
       // Only update if the value actually changed
+      if (key === "status" && value === "all") {
+        value = undefined;
+        const newFilters = { ...activeFilters };
+        delete newFilters[key];
+        setActiveFilters(newFilters);
+      }
       if (activeFilters[key] !== value) {
         if (value) {
           setActiveFilters((prev) => ({ ...prev, [key]: value }));
@@ -257,6 +263,7 @@ export const DataTableWithFilters = ({
                 className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400"
                 onClick={() => handleSearch("")}
                 type="button"
+                title="Clear search"
               >
                 <X className="h-4 w-4" />
               </button>
@@ -282,7 +289,7 @@ export const DataTableWithFilters = ({
                         {column.label}
                       </label>
                       <Select
-                        value={activeFilters[column.key] || ""}
+                        value={activeFilters[column.key] || "all"}
                         onValueChange={(value) =>
                           handleFilter(column.key, value)
                         }
@@ -291,7 +298,7 @@ export const DataTableWithFilters = ({
                           <SelectValue placeholder="Select..." />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="">All</SelectItem>
+                          <SelectItem value="all">All</SelectItem>
                           {column.filterOptions?.map((option) => (
                             <SelectItem key={option.value} value={option.value}>
                               {option.label}
@@ -326,7 +333,11 @@ export const DataTableWithFilters = ({
           {searchValue && (
             <Badge variant="outline" className="flex items-center gap-1">
               Search: {searchValue}
-              <button onClick={() => handleSearch("")} type="button">
+              <button
+                onClick={() => handleSearch("")}
+                type="button"
+                title="clear search"
+              >
                 <X className="h-3 w-3" />
               </button>
             </Badge>
@@ -338,7 +349,11 @@ export const DataTableWithFilters = ({
               className="flex items-center gap-1"
             >
               {columns.find((col) => col.key === key)?.label}: {value}
-              <button onClick={() => removeFilter(key)} type="button">
+              <button
+                onClick={() => removeFilter(key)}
+                type="button"
+                title="remove filter"
+              >
                 <X className="h-3 w-3" />
               </button>
             </Badge>

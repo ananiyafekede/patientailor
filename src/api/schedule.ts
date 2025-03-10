@@ -43,7 +43,9 @@ export async function getScheduleForDoctor(
       params.append(key, value);
     }
 
-    const res = await api.get(`/doctors/schedule?${params.toString()}`);
+    const res = await api.get(
+      `/doctors/schedule/${doctorId}?${params.toString()}`
+    );
     return res.data.data;
   } catch (error) {
     return handleError(error);

@@ -1,4 +1,3 @@
-
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useEffect, useCallback } from "react";
 import { useGetDoctorAppointment } from "@/hooks/doctor";
@@ -22,22 +21,17 @@ const AppointmentList = () => {
       sort: "appointment_date",
     });
 
-  // Only set the tab once when component mounts to avoid infinite loop
   useEffect(() => {
-    // Only update if the current tab isn't already set to appointments
     if (queryParams._tab !== "appointments") {
       setQueryParams({
         _tab: "appointments",
-        // Default appointment view if none is specified
         _appointment_view: queryParams._appointment_view || "all",
       });
     }
-  }, []); // Empty dependency array ensures this only runs once on mount
+  }, []);
 
-  // Get appointment view from URL
   const appointmentView = queryParams._appointment_view || "all";
 
-  // Add filter based on view - but don't trigger another state update
   const apiQueryParams = getFilteredQueryParams();
   if (appointmentView === "upcoming") {
     apiQueryParams.status = "pending";
@@ -56,26 +50,29 @@ const AppointmentList = () => {
   const { mutate: updateStatus, isPending: isUpdatingStatus } =
     useUpdateAppointmentStatus();
 
-  // Handle view change without triggering an infinite loop
-  const handleViewChange = useCallback((view: string) => {
-    if (view !== appointmentView) {
-      setQueryParams({ _appointment_view: view, page: 1 });
-    }
-  }, [appointmentView, setQueryParams]);
-
-  // Handle updating appointment status
-  const handleStatusChange = useCallback((appointmentId: number, status: string) => {
-    updateStatus(
-      { id: appointmentId, status },
-      {
-        onSuccess: () => {
-          refetch();
-        },
+  const handleViewChange = useCallback(
+    (view: string) => {
+      if (view !== appointmentView) {
+        setQueryParams({ _appointment_view: view, page: 1 });
       }
-    );
-  }, [updateStatus, refetch]);
+    },
+    [appointmentView, setQueryParams]
+  );
 
-  // Format date for better display
+  const handleStatusChange = useCallback(
+    (appointmentId: number, status: string) => {
+      updateStatus(
+        { id: appointmentId, status },
+        {
+          onSuccess: () => {
+            refetch();
+          },
+        }
+      );
+    },
+    [updateStatus, refetch]
+  );
+
   const formatDate = useCallback((date?: string) => {
     if (!date) return "N/A";
     try {
@@ -101,7 +98,7 @@ const AppointmentList = () => {
     {
       key: "patient",
       label: "Patient",
-      sortable: true, // Changed to true to enable sorting
+      sortable: false,
       render: (appointment: Appointment) => {
         return appointment.Patient
           ? `${appointment.Patient.first_name} ${appointment.Patient.last_name}`
@@ -115,9 +112,7 @@ const AppointmentList = () => {
       filterable: true,
       filterOptions: [
         { label: "Pending", value: "pending" },
-        { label: "Confirmed", value: "confirmed" },
         { label: "Completed", value: "completed" },
-        { label: "Cancelled", value: "cancelled" },
       ],
       render: (appointment: any) => (
         <Badge
@@ -127,7 +122,7 @@ const AppointmentList = () => {
               ? "default"
               : appointment.status === "cancelled"
               ? "destructive"
-              : "outline"
+              : "secondary"
           }
         >
           {appointment.status}
@@ -173,17 +168,17 @@ const AppointmentList = () => {
     },
   ];
 
-  // Handle data table query changes
-  const handleQueryChange = useCallback((newParams: Record<string, any>) => {
-    // Prevent infinite loop by not triggering a state update if nothing changed
-    const hasChanges = Object.entries(newParams).some(
-      ([key, value]) => queryParams[key] !== value
-    );
-
-    if (hasChanges) {
-      setQueryParams(newParams);
-    }
-  }, [queryParams, setQueryParams]);
+  const handleQueryChange = useCallback(
+    (newParams: Record<string, any>) => {
+      const hasChanges = Object.entries(newParams).some(
+        ([key, value]) => queryParams[key] !== value
+      );
+      if (hasChanges) {
+        setQueryParams(newParams);
+      }
+    },
+    [queryParams, setQueryParams]
+  );
 
   if (error) {
     return (
@@ -219,19 +214,22 @@ const AppointmentList = () => {
           Completed
         </Button>
       </div>
-
-      <DataTableWithFilters
-        title="Appointments"
-        data={appointments}
-        columns={columns}
-        actions={actions}
-        isLoading={isLoading}
-        pagination={
-          pagination || { page: 1, limit: 10, total: 0, totalPages: 0 }
-        }
-        searchFields={["notes"]}
-        onQueryChange={handleQueryChange}
-      />
+      {error ? (
+        <p>error</p>
+      ) : (
+        <DataTableWithFilters
+          title="Appointments"
+          data={appointments}
+          columns={columns}
+          actions={actions}
+          isLoading={isLoading}
+          pagination={
+            pagination || { page: 1, limit: 10, total: 0, totalPages: 0 }
+          }
+          searchFields={["notes"]}
+          onQueryChange={handleQueryChange}
+        />
+      )}
     </div>
   );
 };
