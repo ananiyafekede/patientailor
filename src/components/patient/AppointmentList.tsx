@@ -1,6 +1,7 @@
 
+import { useEffect, useState, useCallback } from "react";
 import { format } from "date-fns";
-import { Calendar, Clock, Loader, Eye, Edit, X, MoreVertical } from "lucide-react";
+import { Calendar, Clock, Eye, Edit, X, MoreVertical } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -10,19 +11,12 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Spinner } from "@/components/ui/spinner";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useGetPatientAppointments } from "@/hooks/patient";
-import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useQueryParams } from "@/hooks/useQueryParams";
+import { Appointment } from "@/types";
+import { DataTableWithFilters } from "@/components/ui/data-table/DataTableWithFilters";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -32,8 +26,24 @@ import {
 
 const AppointmentList = () => {
   const navigate = useNavigate();
-  const { isLoading, error, appointments } = useGetPatientAppointments();
   const [filter, setFilter] = useState("all"); // all, upcoming, past
+  
+  const { queryParams, setQueryParams, getFilteredQueryParams } = useQueryParams({
+    page: 1,
+    limit: 10,
+    sort: "appointment_date",
+    order: "desc"
+  });
+  
+  const apiQueryParams = getFilteredQueryParams();
+  // Apply manual filtering for appointment status based on dates
+  if (filter === "upcoming") {
+    apiQueryParams.status = "pending";
+  } else if (filter === "past") {
+    apiQueryParams.status = "completed,cancelled";
+  }
+  
+  const { isLoading, error, appointments, pagination } = useGetPatientAppointments(undefined, apiQueryParams);
 
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
@@ -48,22 +58,113 @@ const AppointmentList = () => {
         return "bg-blue-500";
     }
   };
+  
+  const handleFilterChange = useCallback((newFilter: string) => {
+    setFilter(newFilter);
+    // Reset to first page when changing filters
+    setQueryParams({ page: 1 });
+  }, [setQueryParams]);
+  
+  const handleQueryChange = useCallback((newParams: Record<string, any>) => {
+    setQueryParams(newParams);
+  }, [setQueryParams]);
 
-  const filteredAppointments = appointments?.filter((appointment) => {
-    const appointmentDate = new Date(appointment.appointment_date);
-    const today = new Date();
-    
-    if (filter === "upcoming") {
-      return appointmentDate >= today && appointment.status.toLowerCase() !== "cancelled";
-    } else if (filter === "past") {
-      return appointmentDate < today || appointment.status.toLowerCase() === "completed";
+  const formatDate = useCallback((date: string) => {
+    try {
+      return format(new Date(date), "PPP");
+    } catch {
+      return "Invalid date";
     }
-    return true;
-  });
+  }, []);
+  
+  const formatTime = useCallback((time: string) => {
+    try {
+      return format(new Date(`2000-01-01T${time}`), "p");
+    } catch {
+      return time;
+    }
+  }, []);
 
-  if (isLoading) {
-    return <Spinner />;
-  }
+  // Define columns for DataTable
+  const columns = [
+    {
+      key: "Doctor",
+      label: "Doctor",
+      sortable: false,
+      render: (appointment: Appointment) => (
+        <div>
+          <p className="font-medium">
+            Dr.{" "}
+            {`${appointment.Doctor?.first_name || ""} ${appointment.Doctor?.last_name || ""}`}
+          </p>
+          <p className="text-sm text-muted-foreground">
+            {appointment.Doctor?.specialty || "Specialist"}
+          </p>
+        </div>
+      ),
+    },
+    {
+      key: "appointment_date",
+      label: "Date",
+      sortable: true,
+      render: (appointment: Appointment) => (
+        <div className="flex items-center">
+          <Calendar className="mr-2 h-4 w-4 text-muted-foreground" />
+          {formatDate(appointment.appointment_date)}
+        </div>
+      ),
+    },
+    {
+      key: "appointment_time",
+      label: "Time",
+      sortable: true,
+      render: (appointment: Appointment) => (
+        <div className="flex items-center">
+          <Clock className="mr-2 h-4 w-4 text-muted-foreground" />
+          {formatTime(appointment.appointment_time)}
+        </div>
+      ),
+    },
+    {
+      key: "status",
+      label: "Status",
+      sortable: true,
+      filterable: true,
+      filterOptions: [
+        { label: "Pending", value: "pending" },
+        { label: "Completed", value: "completed" },
+        { label: "Cancelled", value: "cancelled" },
+      ],
+      render: (appointment: Appointment) => (
+        <Badge className={getStatusColor(appointment.status)}>
+          {appointment.status}
+        </Badge>
+      ),
+    }
+  ];
+
+  // Define actions
+  const actions = [
+    {
+      label: "View Details",
+      icon: <Eye className="h-4 w-4" />,
+      onClick: (appointment: Appointment) => console.log("View details", appointment.id),
+    },
+    {
+      label: "Reschedule",
+      icon: <Edit className="h-4 w-4" />,
+      onClick: (appointment: Appointment) => console.log("Reschedule", appointment.id),
+      condition: (appointment: Appointment) => 
+        appointment.status === "pending" && new Date(appointment.appointment_date) > new Date(),
+    },
+    {
+      label: "Cancel",
+      icon: <X className="h-4 w-4" />,
+      onClick: (appointment: Appointment) => console.log("Cancel", appointment.id),
+      condition: (appointment: Appointment) => 
+        appointment.status === "pending" && new Date(appointment.appointment_date) > new Date(),
+    }
+  ];
 
   if (error) {
     return (
@@ -90,21 +191,21 @@ const AppointmentList = () => {
             <Button 
               variant={filter === "all" ? "default" : "outline"} 
               size="sm"
-              onClick={() => setFilter("all")}
+              onClick={() => handleFilterChange("all")}
             >
               All
             </Button>
             <Button 
               variant={filter === "upcoming" ? "default" : "outline"} 
               size="sm"
-              onClick={() => setFilter("upcoming")}
+              onClick={() => handleFilterChange("upcoming")}
             >
               Upcoming
             </Button>
             <Button 
               variant={filter === "past" ? "default" : "outline"} 
               size="sm"
-              onClick={() => setFilter("past")}
+              onClick={() => handleFilterChange("past")}
             >
               Past
             </Button>
@@ -112,98 +213,16 @@ const AppointmentList = () => {
         </div>
       </CardHeader>
       <CardContent>
-        {!filteredAppointments || filteredAppointments.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-40">
-            <p className="text-muted-foreground">No appointments found</p>
-            <Button variant="outline" className="mt-4">
-              Book an Appointment
-            </Button>
-          </div>
-        ) : (
-          <div className="rounded-md border">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Doctor</TableHead>
-                  <TableHead>Date</TableHead>
-                  <TableHead>Time</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredAppointments.map((appointment) => (
-                  <TableRow key={appointment.id}>
-                    <TableCell>
-                      <div>
-                        <p className="font-medium">
-                          Dr.{" "}
-                          {`${appointment.Doctor?.first_name || ""} ${appointment.Doctor?.last_name || ""}`}
-                        </p>
-                        <p className="text-sm text-muted-foreground">
-                          {appointment.Doctor?.specialty || "Specialist"}
-                        </p>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center">
-                        <Calendar className="mr-2 h-4 w-4 text-muted-foreground" />
-                        {format(new Date(appointment.appointment_date), "PPP")}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center">
-                        <Clock className="mr-2 h-4 w-4 text-muted-foreground" />
-                        {format(
-                          new Date(
-                            `2000-01-01T${appointment.appointment_time}`
-                          ),
-                          "p"
-                        )}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <Badge className={getStatusColor(appointment.status)}>
-                        {appointment.status}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                            <MoreVertical className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => console.log("View details", appointment.id)}>
-                            <Eye className="h-4 w-4 mr-2" />
-                            View Details
-                          </DropdownMenuItem>
-                          
-                          {appointment.status === "pending" && new Date(appointment.appointment_date) > new Date() && (
-                            <>
-                              <DropdownMenuItem onClick={() => console.log("Reschedule", appointment.id)}>
-                                <Edit className="h-4 w-4 mr-2" />
-                                Reschedule
-                              </DropdownMenuItem>
-                              <DropdownMenuItem 
-                                onClick={() => console.log("Cancel", appointment.id)}
-                                className="text-red-500 hover:text-red-700 focus:text-red-700"
-                              >
-                                <X className="h-4 w-4 mr-2" />
-                                Cancel
-                              </DropdownMenuItem>
-                            </>
-                          )}
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-        )}
+        <DataTableWithFilters
+          data={appointments || []}
+          columns={columns}
+          actions={actions}
+          isLoading={isLoading}
+          pagination={pagination || { page: 1, limit: 10, total: 0, totalPages: 0 }}
+          searchFields={["notes"]}
+          onQueryChange={handleQueryChange}
+          showSearch={true}
+        />
       </CardContent>
     </Card>
   );

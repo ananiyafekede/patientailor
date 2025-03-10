@@ -20,10 +20,13 @@ import { Billing } from "@/types";
 export const BillingHistory = () => {
   const [page, setPage] = useState(1);
   const [limit] = useState(10);
-  const { data: billings, isLoading } = useGetPatientBillings({
+  const { data, isLoading } = useGetPatientBillings(undefined, {
     page,
     limit,
   });
+
+  const billings = data?.billings || [];
+  const pagination = data?.pagination || { total: 0, limit: 10, page: 1, totalPages: 1 };
 
   const formatDate = useCallback((date: string | undefined) => {
     if (!date) return "N/A";
@@ -48,22 +51,14 @@ export const BillingHistory = () => {
   }, [page]);
 
   const handleNext = useCallback(() => {
-    const pagination = billings?.pagination || { totalPages: 1 };
     if (page < pagination.totalPages) {
       setPage((prev) => prev + 1);
     }
-  }, [page, billings]);
+  }, [page, pagination.totalPages]);
 
   if (isLoading) {
     return <Spinner />;
   }
-
-  const pagination = billings?.pagination || { 
-    total: 0, 
-    limit: 10, 
-    page: 1, 
-    totalPages: 1 
-  };
 
   return (
     <Card>

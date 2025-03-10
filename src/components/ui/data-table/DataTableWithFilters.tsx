@@ -290,7 +290,7 @@ export function DataTableWithFilters({
                   colSpan={columns.length + (actions ? 1 : 0)}
                   className="h-24 text-center"
                 >
-                  <Spinner className="mx-auto" />
+                  <Spinner />
                 </TableCell>
               </TableRow>
             ) : data.length === 0 ? (

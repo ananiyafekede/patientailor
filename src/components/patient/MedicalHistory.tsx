@@ -1,13 +1,14 @@
-import { useEffect, useState } from "react";
+
+import { useState, useCallback } from "react";
 import { Eye, FileIcon, FileText, File, FileImage, Download, Calendar } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
 import { Spinner } from "@/components/ui/spinner";
 import { useGetPatientReports } from "@/hooks/patient";
-import { useAuth } from "@/contexts/AuthContext";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { useQueryParams } from "@/hooks/useQueryParams";
 import { Report } from "@/types";
+import { DataTableWithFilters } from "@/components/ui/data-table/DataTableWithFilters";
 
 const getFileIcon = (fileType: string | undefined) => {
   if (!fileType) return <FileText className="h-5 w-5" />;
@@ -22,7 +23,7 @@ const formatReportType = (type: string | undefined) => {
   return type.charAt(0).toUpperCase() + type.slice(1);
 };
 
-const ReportDetailModal = ({ report }: { report: Report }) => {
+const ReportDetailModal = ({ report, onBack }: { report: Report, onBack: () => void }) => {
   return (
     <Card className="w-full">
       <CardHeader className="bg-blue-50">
@@ -112,6 +113,14 @@ const ReportDetailModal = ({ report }: { report: Report }) => {
               </div>
             </div>
           )}
+          
+          <Button 
+            variant="outline" 
+            onClick={onBack}
+            className="mt-4"
+          >
+            Back to all reports
+          </Button>
         </div>
       </CardContent>
     </Card>
@@ -119,9 +128,94 @@ const ReportDetailModal = ({ report }: { report: Report }) => {
 };
 
 const MedicalHistory = () => {
-  const { user } = useAuth();
-  const { isLoading, reports, error } = useGetPatientReports();
   const [selectedReport, setSelectedReport] = useState<Report | null>(null);
+  
+  const { queryParams, setQueryParams, getFilteredQueryParams } = useQueryParams({
+    page: 1,
+    limit: 10,
+    sort: "createdAt",
+    order: "desc"
+  });
+  
+  const { isLoading, reports, error, pagination } = useGetPatientReports(
+    undefined, 
+    getFilteredQueryParams()
+  );
+  
+  const formatDate = useCallback((date: string | undefined) => {
+    if (!date) return "N/A";
+    try {
+      return format(new Date(date), "PPP");
+    } catch (error) {
+      return "Invalid date";
+    }
+  }, []);
+  
+  const handleQueryChange = useCallback((newParams: Record<string, any>) => {
+    setQueryParams(newParams);
+  }, [setQueryParams]);
+  
+  // Define columns for DataTable
+  const columns = [
+    {
+      key: "createdAt",
+      label: "Date",
+      sortable: true,
+      render: (report: Report) => (
+        <div className="flex items-center gap-2">
+          <Calendar className="h-4 w-4 text-blue-500" />
+          {formatDate(report.createdAt)}
+        </div>
+      ),
+    },
+    {
+      key: "type",
+      label: "Type",
+      sortable: true,
+      filterable: true,
+      filterOptions: [
+        { label: "Prescription", value: "prescription" },
+        { label: "Lab Result", value: "lab_result" },
+        { label: "Report", value: "report" },
+      ],
+      render: (report: Report) => (
+        <div className="flex items-center gap-2">
+          {getFileIcon(report.file_url)}
+          {formatReportType(report.type)}
+        </div>
+      ),
+    },
+    {
+      key: "content",
+      label: "Description",
+      render: (report: Report) => (
+        <span className="line-clamp-1">
+          {typeof report.content === 'object' ? 
+            Object.entries(report.content)[0]?.[1] || 'No description' 
+            : String(report.content).substring(0, 50) + '...'}
+        </span>
+      ),
+    },
+  ];
+
+  // Define actions
+  const actions = [
+    {
+      label: "View Details",
+      icon: <Eye className="h-4 w-4" />,
+      onClick: (report: Report) => setSelectedReport(report),
+    },
+    {
+      label: "Download",
+      icon: <Download className="h-4 w-4" />,
+      onClick: (report: Report) => {
+        if (report.file_url) {
+          window.open(report.file_url, '_blank');
+        }
+      },
+      condition: (report: Report) => !!report.file_url,
+    },
+  ];
 
   if (isLoading) {
     return <Spinner />;
@@ -147,65 +241,22 @@ const MedicalHistory = () => {
           <CardDescription>View your past medical records and prescriptions</CardDescription>
         </CardHeader>
         <CardContent>
-          {reports && reports.length > 0 ? (
-            <div className="space-y-6">
-              {selectedReport ? (
-                <div className="space-y-4">
-                  <Button 
-                    variant="outline" 
-                    onClick={() => setSelectedReport(null)}
-                    className="mb-2"
-                  >
-                    Back to all reports
-                  </Button>
-                  <ReportDetailModal report={selectedReport} />
-                </div>
-              ) : (
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Date</TableHead>
-                      <TableHead>Type</TableHead>
-                      <TableHead>Description</TableHead>
-                      <TableHead className="text-right">Action</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {reports.map((report) => (
-                      <TableRow key={report.id} className="hover:bg-blue-50/50 transition-colors">
-                        <TableCell>
-                          <div className="flex items-center gap-2">
-                            <Calendar className="h-4 w-4 text-blue-500" />
-                            {report.createdAt && format(new Date(report.createdAt), "PPP")}
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-2">
-                            {getFileIcon(report.file_url)}
-                            {formatReportType(report.type)}
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          {typeof report.content === 'object' ? 
-                            Object.entries(report.content)[0]?.[1] || 'No description' 
-                            : String(report.content).substring(0, 50) + '...'}
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => setSelectedReport(report)}
-                          >
-                            <Eye className="mr-2 h-4 w-4" />
-                            View Details
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              )}
-            </div>
+          {selectedReport ? (
+            <ReportDetailModal 
+              report={selectedReport} 
+              onBack={() => setSelectedReport(null)} 
+            />
+          ) : reports && reports.length > 0 ? (
+            <DataTableWithFilters
+              data={reports}
+              columns={columns}
+              actions={actions}
+              isLoading={isLoading}
+              pagination={pagination || { page: 1, limit: 10, total: 0, totalPages: 0 }}
+              searchFields={["type", "content"]}
+              onQueryChange={handleQueryChange}
+              showSearch={true}
+            />
           ) : (
             <div className="text-center py-12 border border-dashed rounded-md border-gray-300 bg-gray-50">
               <FileText className="h-12 w-12 mx-auto text-gray-400 mb-3" />
